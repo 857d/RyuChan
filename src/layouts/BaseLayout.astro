@@ -30,7 +30,6 @@ const {
   showBanner = true,
 } = Astro.props;
 
-// 根据当前路径从配置中获取 Banner 内容
 const currentPath = Astro.url.pathname.replace("/", "") || "home";
 const pageConfig = SITE_PAGES?.[currentPath];
 const bannerTitle = pageConfig?.title || title || "";
@@ -56,7 +55,7 @@ const bannerSubtitle = pageConfig?.subtitle || "";
     />
     <title>{`${title} - ${SITE_TAB}`}</title>
 
-    <!-- Umami分析（自建） -->
+    <!-- Umami分析 -->
     {
       umamiConfig.enable && umamiConfig.websiteId && (
         <script
@@ -129,7 +128,6 @@ const bannerSubtitle = pageConfig?.subtitle || "";
     </script>
   </head>
 
-  <!-- 移除上边距，让Banner从顶部开始 -->
   <body
     class="flex flex-col min-h-screen bg-[var(--banner-wave-bg)]"
     {...isIndexed ? { "data-pagefind-body": true } : {}}
@@ -152,6 +150,7 @@ const bannerSubtitle = pageConfig?.subtitle || "";
           showSidebar && (
             <aside class="col-span-1 bg-transparent order-2 md:order-1 md:top-4 hidden md:block">
               <Sidebar headings={headings} showTOC={showTOC} />
+              <!-- 动态目录将注入到这里 -->
               <slot name="sidebar" />
             </aside>
           )
@@ -159,11 +158,10 @@ const bannerSubtitle = pageConfig?.subtitle || "";
       </div>
     </div>
 
-
     <MobileTOC headings={headings} showTOC={showTOC} />
     <GlobalAudio />
 
-    <!-- 其余脚本保持不变 -->
+    <!-- 主题切换后同步 -->
     <script define:vars={{ SITE_THEME }} is:inline>
       document.addEventListener("astro:after-swap", () => {
         const storedTheme = localStorage.getItem("theme");
@@ -180,6 +178,7 @@ const bannerSubtitle = pageConfig?.subtitle || "";
       });
     </script>
 
+    <!-- 代码复制按钮 -->
     <script is:inline>
       document.addEventListener("astro:page-load", () => {
         document.querySelectorAll(".btn-copy").forEach((button) => {
@@ -210,6 +209,140 @@ const bannerSubtitle = pageConfig?.subtitle || "";
       });
     </script>
 
+    <!-- 目录交互修复脚本：生成标题id、动态生成目录、平滑滚动和高亮 -->
+    <script is:inline>
+      // 为所有没有 id 的标题生成 id
+      function ensureHeadingIds() {
+        document.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach((heading, idx) => {
+          if (!heading.id) {
+            let slug = (heading.textContent || '').trim()
+              .toLowerCase()
+              .replace(/[^\w\u4e00-\u9fa5]+/g, '-')
+              .replace(/^-+|-+$/g, '');
+            if (!slug) slug = `heading-${idx}`;
+            if (document.getElementById(slug)) slug = `${slug}-${idx}`;
+            heading.id = slug;
+          }
+        });
+      }
+
+      // 获取导航栏高度（自动适配）
+      function getNavbarHeight() {
+        const navbar = document.querySelector('nav') || document.querySelector('.navbar') || document.querySelector('header');
+        return navbar ? navbar.offsetHeight : 80;
+      }
+
+      // 动态生成目录（注入到 .sidebar-toc 或指定容器）
+      function generateDynamicTOC() {
+        // 寻找目录容器：优先使用 Sidebar 内部的 .toc-container，否则创建
+        let tocContainer = document.querySelector('#dynamic-toc-container');
+        if (!tocContainer) {
+          // 尝试在 Sidebar 内部找到合适的容器（例如 .toc-container）
+          const sidebar = document.querySelector('aside');
+          if (sidebar) {
+            tocContainer = sidebar.querySelector('.toc-container');
+            if (!tocContainer) {
+              tocContainer = document.createElement('div');
+              tocContainer.id = 'dynamic-toc-container';
+              tocContainer.className = 'toc-container mt-4';
+              // 插入到 Sidebar 内部合适位置（例如第一个子元素后）
+              if (sidebar.firstChild) {
+                sidebar.insertBefore(tocContainer, sidebar.firstChild);
+              } else {
+                sidebar.appendChild(tocContainer);
+              }
+            }
+          }
+        }
+        if (!tocContainer) return;
+
+        // 获取所有有 id 的标题（通常从 h2 开始）
+        const headings = Array.from(document.querySelectorAll('h2, h3, h4, h5, h6')).filter(h => h.id);
+        if (headings.length === 0) return;
+
+        // 清空并重建目录
+        tocContainer.innerHTML = '';
+        const nav = document.createElement('nav');
+        nav.className = 'toc-nav';
+        const ul = document.createElement('ul');
+        ul.className = 'space-y-0';
+
+        headings.forEach(heading => {
+          const li = document.createElement('li');
+          const a = document.createElement('a');
+          a.href = `#${heading.id}`;
+          a.textContent = heading.innerText || heading.textContent;
+          a.className = 'toc-link block py-1 px-2 rounded-lg hover:bg-base-200 transition-colors';
+          const level = parseInt(heading.tagName[1]);
+          a.style.paddingLeft = `${12 + (level - 2) * 16}px`;
+          a.style.fontWeight = level === 2 ? '500' : 'normal';
+          li.appendChild(a);
+          ul.appendChild(li);
+        });
+        nav.appendChild(ul);
+        tocContainer.appendChild(nav);
+
+        const tocLinks = document.querySelectorAll('#dynamic-toc-container .toc-link, .toc-container .toc-link');
+        
+        // 点击跳转：减去导航栏高度，避免遮挡
+        tocLinks.forEach(link => {
+          link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const targetId = link.getAttribute('href').slice(1);
+            const target = document.getElementById(targetId);
+            if (target) {
+              const navbarHeight = getNavbarHeight();
+              const targetPosition = target.getBoundingClientRect().top + window.scrollY - navbarHeight - 10;
+              window.scrollTo({ top: targetPosition, behavior: 'smooth' });
+              history.pushState(null, null, `#${targetId}`);
+            }
+          });
+        });
+
+        // 滚动高亮当前章节
+        function updateActive() {
+          const navbarHeight = getNavbarHeight();
+          const offset = navbarHeight + 20;
+          let currentId = '';
+          for (const heading of headings) {
+            const rect = heading.getBoundingClientRect();
+            if (rect.top <= offset && rect.bottom >= offset) {
+              currentId = heading.id;
+              break;
+            }
+          }
+          tocLinks.forEach(link => {
+            link.classList.remove('active');
+            if (link.getAttribute('href') === `#${currentId}`) {
+              link.classList.add('active');
+            }
+          });
+        }
+
+        window.addEventListener('scroll', updateActive);
+        window.addEventListener('load', updateActive);
+        updateActive();
+      }
+
+      function init() {
+        ensureHeadingIds();
+        // 只有需要显示目录时才生成
+        const showTOC = {{ showTOC }}; // 传递 Astro 的 showTOC 变量
+        if (showTOC) {
+          // 延迟确保 DOM 完全就绪
+          setTimeout(generateDynamicTOC, 100);
+        }
+      }
+
+      // 监听 Astro 客户端导航和普通加载
+      document.addEventListener('astro:page-load', () => setTimeout(init, 50));
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+      } else {
+        init();
+      }
+    </script>
+
     <style is:inline>
       .btn-copy {
         position: relative;
@@ -218,19 +351,19 @@ const bannerSubtitle = pageConfig?.subtitle || "";
       .copy-success {
         animation: pulse 0.5s ease-in-out;
       }
-  .ryuchan-code-toolbar-copy-success svg {
+      .ryuchan-code-toolbar-copy-success svg {
         color: #10b981;
       }
       @keyframes pulse {
-        0% {
-          transform: scale(1);
-        }
-        50% {
-          transform: scale(1.1);
-        }
-        100% {
-          transform: scale(1);
-        }
+        0% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+        100% { transform: scale(1); }
+      }
+      /* 目录高亮样式 */
+      .toc-link.active {
+        font-weight: bold;
+        color: #3b82f6;
+        background-color: rgba(59,130,246,0.1);
       }
     </style>
   </body>

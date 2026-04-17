@@ -116,7 +116,7 @@ user:
   avatar: /profile.png
   sidebar:
     social:
-      - href: https://github.com/kobaridev
+      - href: mqqwpa://im/chat?chat_type=wpa&uin=<1226407713>&version=1&src_type=web
         ariaLabel: QQ
         title: QQ
         svg: ri:qq-line

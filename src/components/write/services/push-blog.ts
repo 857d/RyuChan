@@ -90,6 +90,7 @@ export async function pushBlog(params: PushBlogParams): Promise<void> {
         toast.loading('正在创建文章内容...', { id: toastId })
 
         const dateStr = form.date || formatDateTimeLocal()
+        // ✅ 关键修改：添加 password 字段
         const frontmatter = {
             title: form.title,
             description: form.summary,
@@ -99,7 +100,7 @@ export async function pushBlog(params: PushBlogParams): Promise<void> {
             tags: form.tags,
             categories: form.categories,
             badge: form.badge,
-            password: form.password || undefined,   // ✅ 关键：写入 password 字段
+            password: form.password || undefined,
         }
         const finalContent = stringifyFrontmatter(frontmatter, mdToUpload)
 

@@ -11,7 +11,7 @@
 
     const storedPassword = container.getAttribute('data-password');
     const encryptedData = container.getAttribute('data-encrypted');
-    const slug = container.getAttribute('data-slug'); // 新增获取 slug
+    const slug = container.getAttribute('data-slug'); // 获取文章 slug
     const passwordInput = document.getElementById('password-input');
     const decryptBtn = document.getElementById('decrypt-btn');
     const errorMsg = document.getElementById('error-msg');

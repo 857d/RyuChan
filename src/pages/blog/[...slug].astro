@@ -1,211 +1,109 @@
 ---
-import { marked } from "marked";
-import BaseLayout from "@layouts/BaseLayout.astro";
-import License from "@components/widgets/License.astro";
-import PostInfo from "@components/widgets/PostInfo.astro";
-import PostFilter from "@components/widgets/PostFilter.astro";
-import PostNavigation from "@components/widgets/PostNavigation.astro";
-import { type CollectionEntry, getCollection } from "astro:content";
-import dayjs from "@utils/dayjs";
-import { DATE_FORMAT } from "@config";
-import MainCard from "@/components/MainCard.astro";
-import Giscus from "@components/comments/Giscus.astro";
-import Waline from "@components/comments/Waline.astro";
-import { commentsConfig } from "@config";
-import "@fancyapps/ui/dist/fancybox/fancybox.css";
-import { Icon } from "astro-icon/components";
-import EncryptedContent from "@components/EncryptedContent.astro";
-import { encryptWithWebCrypto } from "@/lib/encrypt";
-
-export async function getStaticPaths() {
-  const posts = await getCollection("blog");
-  const publishedPosts = posts
-    .filter((post) => !post.data.draft)
-    .sort(
-      (a, b) =>
-        new Date(b.data.pubDate).getTime() - new Date(a.data.pubDate).getTime(),
-    );
-
-  const paths = await Promise.all(
-    publishedPosts.map(async (blog, index) => {
-      const prevPost =
-        index < publishedPosts.length - 1 ? publishedPosts[index + 1] : null;
-      const nextPost = index > 0 ? publishedPosts[index - 1] : null;
-
-      const articlePassword = blog.data.password;
-      let encryptedHtml = "";
-      let needProtect = false;
-
-      if (articlePassword && articlePassword.trim() !== "") {
-        needProtect = true;
-        const html = await marked.parse(blog.body);
-        encryptedHtml = await encryptWithWebCrypto(html, articlePassword);
-      }
-
-      return {
-        params: { slug: blog.slug },
-        props: {
-          blog,
-          prevPost,
-          nextPost,
-          encryptedHtml,
-          needProtect,
-          articlePassword: articlePassword || "",
-        },
-      };
-    })
-  );
-
-  return paths;
-}
-
-interface Props {
-  blog: CollectionEntry<"blog">;
-  prevPost?: CollectionEntry<"blog">;
-  nextPost?: CollectionEntry<"blog">;
-  encryptedHtml: string;
-  needProtect: boolean;
-  articlePassword: string;
-}
-
-const { blog, prevPost, nextPost, encryptedHtml, needProtect, articlePassword } = Astro.props;
-const { Content, remarkPluginFrontmatter, headings } = await blog.render();
-const displayDate = blog.data.pubDate
-  ? dayjs(blog.data.pubDate).format(DATE_FORMAT)
-  : "";
-const url = new URL(`/blog/${blog.slug}`, Astro.url.origin);
+const { slug, encryptedContent, password } = Astro.props;
 ---
 
-<BaseLayout
-  title={blog.data.title}
-  image={blog.data.image}
-  headings={headings}
-  showTOC={true}
-  isPostPage={true}
->
-  <MainCard
-    title={blog.data.title}
-    description={blog.data.description}
-    image={blog.data.image}
-    infoIcon="lucide:info"
-  >
-    <div class="flex justify-end">
-      <a href={`/write?slug=${blog.slug}`} class="btn btn-primary btn-sm text-white" aria-label="Edit Article">
-        <Icon name="lucide:edit" class="w-4 h-4" />
-        <span class="hidden sm:inline">Edit</span>
-      </a>
-    </div>
-    <PostInfo
-      pubDate={displayDate}
-      badge={blog.data.badge}
-      word={remarkPluginFrontmatter.totalCharCount}
-      time={remarkPluginFrontmatter.readingTime}
-      url={`/blog/${blog.slug}`}
-      hideViews={true}
-    />
-
-    <div class="mb-6">
-      <PostFilter categories={blog.data.categories} tags={blog.data.tags} />
-    </div>
-
-    <div class="mt-8">
-      <div
-        id="content"
-        class="prose prose-lg prose-code:text-base max-w-none text-justify prose-headings:scroll-mt-20 prose-img:rounded-2xl prose-img:mx-auto prose-img:cursor-pointer"
-      >
-        {
-          needProtect ? (
-            <>
-              <EncryptedContent slug={blog.slug} encryptedContent={encryptedHtml} password={articlePassword} />
-              <License
-                url={url.toString()}
-                title={blog.data.title}
-                image={blog.data.image}
-                pubDate={blog.data.pubDate}
-                badge={blog.data.badge}
-                categories={blog.data.categories}
-                tags={blog.data.tags}
-                word={remarkPluginFrontmatter.totalCharCount}
-                time={remarkPluginFrontmatter.readingTime}
-              />
-            </>
-          ) : (
-            <>
-              <Content />
-              <License
-                url={url.toString()}
-                title={blog.data.title}
-                image={blog.data.image}
-                pubDate={blog.data.pubDate}
-                badge={blog.data.badge}
-                categories={blog.data.categories}
-                tags={blog.data.tags}
-                word={remarkPluginFrontmatter.totalCharCount}
-                time={remarkPluginFrontmatter.readingTime}
-              />
-            </>
-          )
-        }
+{
+  password ? (
+    <div id={`encrypted-post-${slug}`} data-encrypted={encryptedContent} data-password={password}>
+      <div class="password-card" style="max-width: 28rem; margin: 2rem auto;">
+        <div class="card bg-base-100 shadow-xl border border-base-200">
+          <div class="card-body items-center text-center">
+            <div class="text-4xl mb-2">🔐</div>
+            <h2 class="card-title text-xl">此文章已加密</h2>
+            <p class="text-sm text-base-content/70 mb-4">请输入密码查看内容</p>
+            <div class="form-control w-full max-w-xs">
+              <input type="password" id="password-input" placeholder="密码" class="input input-bordered w-full mb-4" autofocus />
+              <button id="decrypt-btn" class="btn btn-primary">验证</button>
+            </div>
+            <div id="error-msg" class="text-error text-sm mt-2 hidden"></div>
+          </div>
+        </div>
       </div>
+      <div class="decrypted-content" style="display: none;"></div>
     </div>
-  </MainCard>
+  ) : (
+    <p>⚠️ 此文章未设置密码，无法加密。</p>
+  )
+}
 
-  <PostNavigation prevPost={prevPost} nextPost={nextPost} />
+<script>
+  (function() {
+    async function decryptWithWebCrypto(encryptedData, password) {
+      const parts = encryptedData.split(':');
+      if (parts.length !== 3) throw new Error('Invalid encrypted data format');
+      const salt = Uint8Array.from(atob(parts[0]), c => c.charCodeAt(0));
+      const iv = Uint8Array.from(atob(parts[1]), c => c.charCodeAt(0));
+      const ciphertext = Uint8Array.from(atob(parts[2]), c => c.charCodeAt(0));
+      
+      const enc = new TextEncoder();
+      const keyMaterial = await crypto.subtle.importKey(
+        'raw', enc.encode(password), 'PBKDF2', false, ['deriveKey']
+      );
+      const key = await crypto.subtle.deriveKey(
+        { name: 'PBKDF2', salt, iterations: 100000, hash: 'SHA-256' },
+        keyMaterial,
+        { name: 'AES-CBC', length: 256 },
+        false,
+        ['decrypt']
+      );
+      const decrypted = await crypto.subtle.decrypt(
+        { name: 'AES-CBC', iv },
+        key,
+        ciphertext.buffer
+      );
+      return new TextDecoder().decode(decrypted);
+    }
 
-  {
-    commentsConfig?.enable &&
-      commentsConfig.type === "giscus" &&
-      commentsConfig.giscus && (
-        <section class="comments">
-          <h2>Comments</h2>
-          <Giscus {...commentsConfig.giscus} />
-        </section>
-      )
-  }
-  {
-    commentsConfig?.enable &&
-      commentsConfig.type === "waline" &&
-      commentsConfig.waline && (
-        <section class="comments">
-          <h2>Comments</h2>
-          <Waline {...commentsConfig.waline} />
-        </section>
-      )
-  }
+    function init() {
+      const container = document.querySelector('[data-encrypted]');
+      if (!container) return;
+      if (container.getAttribute('data-decrypted') === 'true') return;
 
-  <script>
-    import { Fancybox } from "@fancyapps/ui";
+      const storedPassword = container.getAttribute('data-password');
+      const encryptedData = container.getAttribute('data-encrypted');
+      const passwordInput = document.getElementById('password-input');
+      const decryptBtn = document.getElementById('decrypt-btn');
+      const errorMsg = document.getElementById('error-msg');
+      const passwordCard = container.querySelector('.password-card');
+      const decryptedContent = container.querySelector('.decrypted-content');
 
-    document.addEventListener("astro:page-load", () => {
-      const images = document.querySelectorAll("#content img");
-      images.forEach((img) => {
-        if (img.closest("a")) return;
-        const link = document.createElement("a");
-        link.href = (img as HTMLImageElement).src;
-        link.dataset.fancybox = "gallery";
-        link.dataset.caption = (img as HTMLImageElement).alt || "";
-        if (img.parentNode) {
-          img.parentNode.insertBefore(link, img);
-          link.appendChild(img);
+      if (!passwordInput || !decryptBtn || !errorMsg || !passwordCard || !decryptedContent) return;
+
+      async function decryptAndShow() {
+        const userPassword = passwordInput.value;
+        if (!userPassword) {
+          errorMsg.textContent = '请输入密码';
+          errorMsg.classList.remove('hidden');
+          return;
         }
+        if (userPassword === storedPassword) {
+          try {
+            const html = await decryptWithWebCrypto(encryptedData, userPassword);
+            decryptedContent.innerHTML = `<div class="prose prose-lg prose-code:text-base max-w-none text-justify prose-headings:scroll-mt-20 prose-img:rounded-2xl prose-img:mx-auto prose-img:cursor-pointer">${html}</div>`;
+            passwordCard.style.display = 'none';
+            decryptedContent.style.display = 'block';
+            container.setAttribute('data-decrypted', 'true');
+          } catch (err) {
+            console.error(err);
+            errorMsg.textContent = '解密失败，密码错误或内容损坏';
+            errorMsg.classList.remove('hidden');
+          }
+        } else {
+          errorMsg.textContent = '密码错误，请重试';
+          errorMsg.classList.remove('hidden');
+        }
+      }
+
+      decryptBtn.addEventListener('click', decryptAndShow);
+      passwordInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') decryptAndShow();
       });
-      Fancybox.bind("[data-fancybox]", {
-        Toolbar: {
-          display: {
-            left: ["infobar"],
-            middle: [
-              "zoomIn",
-              "zoomOut",
-              "toggle1to1",
-              "rotateCCW",
-              "rotateCW",
-              "flipX",
-              "flipY",
-            ],
-            right: ["slideshow", "thumbs", "close"],
-          },
-        },
-      } as any);
-    });
-  </script>
-</BaseLayout>
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
+  })();
+</script>

@@ -11,13 +11,14 @@
 
     const storedPassword = container.getAttribute('data-password');
     const encryptedData = container.getAttribute('data-encrypted');
+    const slug = container.getAttribute('data-slug'); // 新增获取 slug
     const passwordInput = document.getElementById('password-input');
     const decryptBtn = document.getElementById('decrypt-btn');
     const errorMsg = document.getElementById('error-msg');
     const passwordCard = container.querySelector('.password-card');
     const decryptedContent = container.querySelector('.decrypted-content');
 
-    console.log('Elements found:', { passwordInput, decryptBtn, errorMsg, passwordCard, decryptedContent });
+    console.log('Elements found:', { passwordInput, decryptBtn, errorMsg, passwordCard, decryptedContent, slug });
 
     if (!passwordInput || !decryptBtn || !errorMsg || !passwordCard || !decryptedContent) {
       console.error('Missing required elements');
@@ -63,7 +64,9 @@
         try {
           const html = await decryptWithWebCrypto(encryptedData, userPassword);
           console.log('Decryption success, html length:', html.length);
-          decryptedContent.innerHTML = `<div class="prose prose-lg prose-code:text-base max-w-none text-justify prose-headings:scroll-mt-20 prose-img:rounded-2xl prose-img:mx-auto prose-img:cursor-pointer">${html}</div>`;
+          // 生成编辑按钮
+          const editButton = `<div class="flex justify-end mb-4"><a href="/write?slug=${slug}" class="btn btn-primary btn-sm text-white">✏️ 编辑文章</a></div>`;
+          decryptedContent.innerHTML = editButton + `<div class="prose prose-lg prose-code:text-base max-w-none text-justify prose-headings:scroll-mt-20 prose-img:rounded-2xl prose-img:mx-auto prose-img:cursor-pointer">${html}</div>`;
           passwordCard.style.display = 'none';
           decryptedContent.style.display = 'block';
           container.setAttribute('data-decrypted', 'true');

@@ -4,8 +4,13 @@ description: ''
 pubDate: 2026-04-18T03:19
 image: /images/ash7/8548f38d63b591c8.jpg
 draft: false
-tags: []
-categories: []
+tags:
+  - 安卓
+  - ios
+  - 软件下载
+categories:
+  - 教程
+badge: ''
 password: '1234'
 ---
 软件下载教程

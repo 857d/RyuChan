@@ -21,10 +21,6 @@ export async function pushBlog(params: PushBlogParams): Promise<void> {
 
     if (!form?.slug) throw new Error('需要 slug')
 
-    // if (mode === 'edit' && originalSlug && originalSlug !== form.slug) {
-    // 	throw new Error('编辑模式下不支持修改 slug，请保持原 slug 不变')
-    // }
-
     const token = await getAuthToken()
     const toastId = toast.loading('🚀 正在初始化发布...')
 
@@ -95,16 +91,15 @@ export async function pushBlog(params: PushBlogParams): Promise<void> {
 
         const dateStr = form.date || formatDateTimeLocal()
         const frontmatter = {
-  title: form.title,
-  description: form.summary,
-  pubDate: dateStr,
-  image: coverPath,
-  draft: form.hidden,
-  tags: form.tags,
-  categories: form.categories,
-  badge: form.badge,
-  password: form.password || undefined,   // 新增这一行
-};
+            title: form.title,
+            description: form.summary,
+            pubDate: dateStr,
+            image: coverPath,
+            draft: form.hidden,
+            tags: form.tags,
+            categories: form.categories,
+            badge: form.badge,
+            password: form.password || undefined,   // ✅ 关键：写入 password 字段
         }
         const finalContent = stringifyFrontmatter(frontmatter, mdToUpload)
 
@@ -119,12 +114,11 @@ export async function pushBlog(params: PushBlogParams): Promise<void> {
 
         // 如果是编辑模式且文件格式发生了变化，删除原文件
         if (mode === 'edit' && originalFileFormat && originalFileFormat !== form.fileFormat) {
-            // 在Git中，删除文件是通过添加一个sha为null的条目来实现的
             treeItems.push({
                 path: `src/content/blog/${form.slug}.${originalFileFormat}`,
                 mode: '100644',
                 type: 'blob',
-                sha: null // 空sha表示删除文件
+                sha: null
             })
         }
 

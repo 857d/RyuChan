@@ -10,7 +10,7 @@ tags:
   - tg
 categories:
   - 教程
-badge: pin
+badge: pin - 置顶文章
 password: '1234'
 ---
 > &#x26a0;&#xfe0f; **警告**

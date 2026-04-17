@@ -37,9 +37,19 @@ export async function getStaticPaths() {
       let needProtect = false;
 
       if (articlePassword && articlePassword.trim() !== "") {
-        needProtect = true;
-        const html = await marked.parse(blog.body);
-        encryptedHtml = await encryptWithWebCrypto(html, articlePassword);
+        if (blog.body && typeof blog.body === "string" && blog.body.trim() !== "") {
+          needProtect = true;
+          try {
+            const html = await marked.parse(blog.body);
+            encryptedHtml = await encryptWithWebCrypto(html, articlePassword);
+          } catch (err) {
+            console.error(`加密文章 "${blog.slug}" 失败:`, err);
+            encryptedHtml = "";
+            needProtect = false;
+          }
+        } else {
+          console.warn(`文章 "${blog.slug}" 内容为空，无法加密，将按普通文章处理`);
+        }
       }
 
       return {

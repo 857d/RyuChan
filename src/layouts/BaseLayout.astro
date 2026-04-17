@@ -180,6 +180,7 @@ const bannerSubtitle = pageConfig?.subtitle || "";
       });
     </script>
 
+    <!-- 代码复制脚本 -->
     <script is:inline>
       document.addEventListener("astro:page-load", () => {
         document.querySelectorAll(".btn-copy").forEach((button) => {
@@ -208,6 +209,58 @@ const bannerSubtitle = pageConfig?.subtitle || "";
           });
         });
       });
+    </script>
+
+    <!-- 目录交互修复脚本（为缺失 id 的标题生成锚点，修复链接） -->
+    <script is:inline>
+      function generateMissingHeadingIds() {
+        const headings = document.querySelectorAll('h1, h2, h3, h4, h5, h6');
+        headings.forEach(heading => {
+          if (!heading.id) {
+            let slug = heading.innerText
+              .toLowerCase()
+              .replace(/[^\w\u4e00-\u9fa5]+/g, '-')
+              .replace(/^-+|-+$/g, '');
+            if (document.getElementById(slug)) {
+              slug = slug + '-' + Math.floor(Math.random() * 1000);
+            }
+            heading.id = slug;
+          }
+        });
+      }
+
+      function fixTOCLinks() {
+        const tocLinks = document.querySelectorAll('.toc-nav a, .mobile-toc-link, .sidebar-toc a');
+        tocLinks.forEach(link => {
+          const href = link.getAttribute('href');
+          if (href && href.startsWith('#')) {
+            const targetId = href.slice(1);
+            if (!document.getElementById(targetId)) {
+              const linkText = link.innerText.trim();
+              const heading = Array.from(document.querySelectorAll('h1, h2, h3, h4, h5, h6')).find(
+                h => h.innerText.trim() === linkText
+              );
+              if (heading && heading.id) {
+                link.setAttribute('href', `#${heading.id}`);
+              }
+            }
+          }
+        });
+      }
+
+      function initTOC() {
+        generateMissingHeadingIds();
+        fixTOCLinks();
+        // 触发 TOCBar 组件的高亮刷新（如果它使用了自定义事件）
+        window.dispatchEvent(new CustomEvent('toc-update'));
+      }
+
+      document.addEventListener('astro:page-load', initTOC);
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initTOC);
+      } else {
+        initTOC();
+      }
     </script>
 
     <style is:inline>

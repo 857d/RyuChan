@@ -120,22 +120,22 @@ user:
   sidebar:
     social:
       - href: https://github.com/kobaridev
-        ariaLabel: Github
-        title: Github
-        svg: ri:github-line
+        ariaLabel: QQ
+        title: QQ
+        svg: ri:qq-line
       - href: https://space.bilibili.com/1536411565
-        ariaLabel: BiliBili
-        title: BiliBili
-        svg: ri:bilibili-line
+        ariaLabel: WeChat
+        title: WeChat
+        svg: ri:wechat-fill
       - href: >-
           https://www.douyin.com/user/MS4wLjABAAAAeO0sqJYUgh1a26GkVPtS2yv_IOODjeqvtl4KSjvsntg?from_tab_name=main
-        ariaLabel: Douyin
-        title: Douyin
-        svg: ri:tiktok-line
+        ariaLabel: Telegram
+        title: Telegram
+        svg: ri:telegram-line
       - href: https://weibo.com/u/7579913510
-        title: Weibo
-        ariaLabel: Weibo
-        svg: ri:weibo-fill
+        title: Telegram
+        ariaLabel: Telegram
+        svg: ri:telegram-line
   footer:
     social:
       - href: https://github.com/kobaridev

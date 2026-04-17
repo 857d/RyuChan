@@ -95,7 +95,7 @@ umami:
   timezone: Asia/Shanghai
 user:
   name: 857博客
-  description: 857的个人博客，发布一些教程·软件·游戏~
+  description: 857的个人博客，发布一些。教程·软件·游戏~
   site: https://t.me/Ash662
   avatar: /profile.png
   sidebar:

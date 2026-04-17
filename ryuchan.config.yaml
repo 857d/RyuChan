@@ -77,7 +77,7 @@ site:
           svg: material-symbols:music-note-rounded
           target: _self
     - id: friend
-      text: 广告
+      text: 友情推荐
       href: /friend
       svg: material-symbols:supervisor-account-outline-rounded
       target: _self
@@ -118,19 +118,19 @@ user:
         svg: ri:telegram-line
   footer:
     social:
-      - href: https://github.com/kobaridev
+      - href: https://github.com/
         ariaLabel: Github
         title: Github
         svg: ri:github-line
-      - href: https://space.bilibili.com/1536411565
+      - href: https://space.bilibili.com/
         ariaLabel: BiliBili
         title: BiliBili
         svg: ri:bilibili-line
-      - href: https://x.com/xzz_ya
+      - href: https://x.com/
         ariaLabel: X(twitter)
         title: X(twitter)
         svg: ri:twitter-line
-      - href: https://t.me/xzz_ya
+      - href: https://t.me/Ash662
         ariaLabel: Telegram
         title: Telegram
         svg: ri:telegram-line

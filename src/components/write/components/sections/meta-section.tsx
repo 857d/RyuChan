@@ -11,10 +11,8 @@ type MetaSectionProps = {
 
 export function MetaSection({ delay = 0, categories = [] }: MetaSectionProps) {
 	const { form, updateForm } = useWriteStore()
-	// 如果当前选中的分类不在预设列表中，且有值，则默认为自定义模式
 	const [isCustomCategory, setIsCustomCategory] = useState(() => {
 		if (form.categories.length === 0) return false
-		// 如果有多个分类，或者是单个分类但不在预设列表中，则为自定义模式
 		return form.categories.length > 1 || (form.categories.length === 1 && !categories.includes(form.categories[0]))
 	})
 
@@ -91,10 +89,28 @@ export function MetaSection({ delay = 0, categories = [] }: MetaSectionProps) {
 					placeholder='日期'
 					className='input input-bordered w-full bg-base-100 focus:input-primary text-sm'
 					value={form.date}
-					onChange={e => {
-						updateForm({ date: e.target.value })
-					}}
+					onChange={e => updateForm({ date: e.target.value })}
 				/>
+
+				{/* 文章密码输入框（带提示） */}
+				<div className="form-control w-full">
+					<label className="label">
+						<span className="label-text text-xs font-medium text-base-content/70">文章密码（可选）</span>
+						<span className="label-text-alt text-base-content/60">留空则不加密</span>
+					</label>
+					<input
+						type="text"
+						placeholder="设置一个密码，读者需要输入才能查看"
+						className="input input-bordered w-full bg-base-100 focus:input-primary text-sm"
+						value={form.password || ''}
+						onChange={e => updateForm({ password: e.target.value })}
+					/>
+					<label className="label">
+						<span className="label-text-alt text-info text-xs">
+							⚠️ 密码会以明文存储，仅用于轻度保护
+						</span>
+					</label>
+				</div>
 
 				<div className='flex items-center gap-2 pt-1'>
 					<input

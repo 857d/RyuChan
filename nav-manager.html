@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>导航数据管理器</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        .card-hover:hover {
+            transform: translateY(-2px);
+            transition: all 0.2s ease;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        .drag-handle {
+            cursor: grab;
+        }
+        .drag-handle:active {
+            cursor: grabbing;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 p-6">
+    <div id="app" class="max-w-7xl mx-auto">
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+            <div class="bg-gradient-to-r from-blue-600 to-indigo-700 px-6 py-4">
+                <h1 class="text-2xl font-bold text-white">导航数据管理器</h1>
+                <p class="text-blue-100 text-sm">管理 NAV_DATA 中的分类和项目</p>
+            </div>
+
+            <!-- 工具栏 -->
+            <div class="p-4 border-b flex flex-wrap gap-3 justify-between items-center bg-gray-50">
+                <div class="flex gap-2">
+                    <button @click="addCategory" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2">
+                        <i class="fas fa-plus"></i> 添加分类
+                    </button>
+                    <button @click="exportData" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2">
+                        <i class="fas fa-download"></i> 导出 JSON
+                    </button>
+                    <label class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2 cursor-pointer">
+                        <i class="fas fa-upload"></i> 导入 JSON
+                        <input type="file" @change="importData" accept=".json" class="hidden">
+                    </label>
+                </div>
+                <button @click="generateCode" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2">
+                    <i class="fas fa-code"></i> 生成代码
+                </button>
+            </div>
+
+            <!-- 分类列表 -->
+            <div class="p-4 space-y-6">
+                <div v-for="(category, catIndex) in navData" :key="catIndex" class="border rounded-lg overflow-hidden bg-white shadow-sm">
+                    <div class="bg-gray-50 px-4 py-3 border-b flex justify-between items-center">
+                        <div class="flex items-center gap-3">
+                            <i class="drag-handle fas fa-grip-vertical text-gray-400 cursor-move"></i>
+                            <input v-model="category.title" class="font-bold text-lg border-0 bg-transparent focus:ring-1 focus:ring-blue-500 rounded px-2 py-1 w-48" placeholder="分类标题">
+                            <input v-model="category.icon" class="text-sm border rounded px-2 py-1 w-32" placeholder="图标 (如 lucide:code)">
+                        </div>
+                        <div class="flex gap-2">
+                            <button @click="addItem(catIndex)" class="text-green-600 hover:text-green-800 text-sm"><i class="fas fa-plus"></i> 添加项目</button>
+                            <button @click="removeCategory(catIndex)" class="text-red-600 hover:text-red-800 text-sm"><i class="fas fa-trash"></i> 删除分类</button>
+                        </div>
+                    </div>
+                    <div class="p-3">
+                        <table class="min-w-full text-sm">
+                            <thead class="bg-gray-100">
+                                <tr>
+                                    <th class="px-2 py-2 text-left w-8"></th>
+                                    <th class="px-2 py-2 text-left">名称</th>
+                                    <th class="px-2 py-2 text-left">头像URL</th>
+                                    <th class="px-2 py-2 text-left">描述</th>
+                                    <th class="px-2 py-2 text-left">链接</th>
+                                    <th class="px-2 py-2 text-left">分类标签</th>
+                                    <th class="px-2 py-2 text-left">ID</th>
+                                    <th class="px-2 py-2 text-left w-20">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="(item, itemIndex) in category.items" :key="itemIndex" class="border-b hover:bg-gray-50">
+                                    <td class="px-2 py-2"><i class="drag-handle fas fa-grip-vertical text-gray-300 cursor-move"></i></td>
+                                    <td class="px-2 py-2"><input v-model="item.name" class="w-32 border rounded px-1 py-1"></td>
+                                    <td class="px-2 py-2"><input v-model="item.avatar" class="w-40 border rounded px-1 py-1 text-xs"></td>
+                                    <td class="px-2 py-2"><input v-model="item.description" class="w-40 border rounded px-1 py-1"></td>
+                                    <td class="px-2 py-2"><input v-model="item.url" class="w-48 border rounded px-1 py-1 text-xs"></td>
+                                    <td class="px-2 py-2"><input v-model="item.category" class="w-24 border rounded px-1 py-1"></td>
+                                    <td class="px-2 py-2"><input v-model="item.id" class="w-24 border rounded px-1 py-1"></td>
+                                    <td class="px-2 py-2">
+                                        <button @click="removeItem(catIndex, itemIndex)" class="text-red-500 hover:text-red-700"><i class="fas fa-trash-alt"></i></button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 空状态 -->
+            <div v-if="navData.length === 0" class="p-8 text-center text-gray-400">
+                <i class="fas fa-folder-open text-4xl mb-2"></i>
+                <p>暂无分类，点击“添加分类”开始</p>
+            </div>
+        </div>
+
+        <!-- 代码生成模态框 -->
+        <div v-if="showCodeModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" @click.self="showCodeModal=false">
+            <div class="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[80vh] flex flex-col">
+                <div class="px-6 py-4 border-b flex justify-between items-center bg-gray-50 rounded-t-xl">
+                    <h3 class="text-lg font-semibold">生成的 TypeScript 代码</h3>
+                    <button @click="showCodeModal=false" class="text-gray-500 hover:text-gray-700"><i class="fas fa-times"></i></button>
+                </div>
+                <div class="flex-1 overflow-auto p-4">
+                    <pre class="bg-gray-900 text-gray-100 p-4 rounded-lg text-sm overflow-x-auto"><code>{{ generatedCode }}</code></pre>
+                </div>
+                <div class="px-6 py-3 border-t flex justify-end gap-2 bg-gray-50 rounded-b-xl">
+                    <button @click="copyCode" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm">复制代码</button>
+                    <button @click="showCodeModal=false" class="bg-gray-300 hover:bg-gray-400 px-4 py-2 rounded-lg text-sm">关闭</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp, ref } = Vue;
+
+        // 默认示例数据（基于您提供的部分）
+        const defaultData = [
+            {
+                title: "软件",
+                icon: "lucide:code",
+                items: [
+                    {
+                        name: "客服QQ",
+                        avatar: "https://cdn.phototourl.com/member/2026-04-17-80c50d45-46c6-42df-ab3b-66925a91f976.webp",
+                        description: "任何问题请联系",
+                        url: "https://tool.gljlw.com/qq/?qq=971165458",
+                        category: "在线中",
+                        id: "DEV001"
+                    },
+                    {
+                        name: "客服QQ",
+                        avatar: "https://cdn.phototourl.com/member/2026-04-17-80c50d45-46c6-42df-ab3b-66925a91f976.webp",
+                        description: "购买请联系我",
+                        url: "https://tool.gljlw.com/qq/?qq=1226407713",
+                        category: "在线中",
+                        id: "DEV002"
+                    }
+                ]
+            }
+        ];
+
+        createApp({
+            setup() {
+                const navData = ref(JSON.parse(JSON.stringify(defaultData)));
+                const showCodeModal = ref(false);
+                const generatedCode = ref('');
+
+                // 添加分类
+                const addCategory = () => {
+                    navData.value.push({
+                        title: "新分类",
+                        icon: "lucide:folder",
+                        items: []
+                    });
+                };
+
+                // 删除分类
+                const removeCategory = (index) => {
+                    if (confirm(`确定删除分类“${navData.value[index].title}”吗？`)) {
+                        navData.value.splice(index, 1);
+                    }
+                };
+
+                // 添加项目
+                const addItem = (catIndex) => {
+                    navData.value[catIndex].items.push({
+                        name: "新项目",
+                        avatar: "",
+                        description: "",
+                        url: "",
+                        category: "",
+                        id: `ITEM${Date.now()}`
+                    });
+                };
+
+                // 删除项目
+                const removeItem = (catIndex, itemIndex) => {
+                    navData.value[catIndex].items.splice(itemIndex, 1);
+                };
+
+                // 导出 JSON
+                const exportData = () => {
+                    const dataStr = JSON.stringify(navData.value, null, 2);
+                    const blob = new Blob([dataStr], {type: "application/json"});
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'navData.json';
+                    a.click();
+                    URL.revokeObjectURL(url);
+                };
+
+                // 导入 JSON
+                const importData = (event) => {
+                    const file = event.target.files[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        try {
+                            const data = JSON.parse(e.target.result);
+                            if (Array.isArray(data)) {
+                                navData.value = data;
+                                alert('导入成功');
+                            } else {
+                                alert('无效的数据格式');
+                            }
+                        } catch (err) {
+                            alert('解析失败：' + err.message);
+                        }
+                    };
+                    reader.readAsText(file);
+                };
+
+                // 生成 TypeScript 代码
+                const generateCode = () => {
+                    const code = `import type { NavItem, NavCategory } from './types'; // 请根据实际路径调整\n\nexport const NAV_DATA: NavCategory[] = ${JSON.stringify(navData.value, null, 2)};`;
+                    generatedCode.value = code;
+                    showCodeModal.value = true;
+                };
+
+                // 复制代码
+                const copyCode = () => {
+                    navigator.clipboard.writeText(generatedCode.value);
+                    alert('代码已复制到剪贴板');
+                };
+
+                return {
+                    navData,
+                    showCodeModal,
+                    generatedCode,
+                    addCategory,
+                    removeCategory,
+                    addItem,
+                    removeItem,
+                    exportData,
+                    importData,
+                    generateCode,
+                    copyCode
+                };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>

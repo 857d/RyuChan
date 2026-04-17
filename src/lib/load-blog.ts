@@ -63,7 +63,8 @@ export async function loadBlog(slug: string): Promise<{ form: PublishForm, cover
         hidden: data.draft || false,
         categories: data.categories || [],
         badge: data.badge || '',
-        fileFormat
+        fileFormat,
+        password: data.password || '',   // ✅ 新增：读取文章密码
     }
 
     return { form, cover: data.image }

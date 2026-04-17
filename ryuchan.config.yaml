@@ -89,14 +89,14 @@ anime:
     listId: '8556173'
 umami:
   enable: false
-  baseUrl: https://umami.131714.xyz
+  baseUrl: 
   shareId: jToXL5Z3hnA1gKUw
   websiteId: 3f9afc6c-f0bd-4734-be15-6d053960d34d
   timezone: Asia/Shanghai
 user:
   name: 857博客
   description: 857的个人博客，发布一些。教程·软件·游戏~
-  site: https://t.me/Ash662
+  site: 
   avatar: /profile.png
   sidebar:
     social:

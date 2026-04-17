@@ -33,3 +33,6 @@ badge: ''
 
 有人问，为什么要这么做？因为TikTok不准中国人使用，设置的唯一目的就是让TikTok规则识别不到我们的设备。
 ![](/images/ash1/ab2bc04ff80ed530.png)
+
+---
+# End

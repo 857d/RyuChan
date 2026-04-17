@@ -3,8 +3,6 @@ import { Icon } from "astro-icon/components";
 import Card from "../temple/Card.astro";
 import type { TOCBarProps } from "@interfaces/data";
 
-// This prop indicates whether to render the TOC
-// (useful to conditionally show on certain pages)
 const { headings = [], showTOC = true } = Astro.props as TOCBarProps;
 ---
 
@@ -14,7 +12,6 @@ const { headings = [], showTOC = true } = Astro.props as TOCBarProps;
       <Card>
         <div class="p-4">
           <nav class="toc-nav max-h-[calc(100vh-200px)] overflow-y-auto scrollbar-none relative">
-            {/* Animated active indicator - now moved outside the ul structure */}
             <div
               id="active-indicator"
               class="absolute bg-primary/10 rounded-lg opacity-0 shadow-sm pointer-events-none z-0"
@@ -67,16 +64,32 @@ const { headings = [], showTOC = true } = Astro.props as TOCBarProps;
 </style>
 
 <script>
-  // Highlight active heading in TOC and manage the active indicator
   document.addEventListener("astro:page-load", () => {
-    // Cache DOM elements and reduce DOM queries
+    // 为所有没有 id 的标题生成 id（使用 textContent 避免类型错误）
+    const allHeadings = document.querySelectorAll('h1, h2, h3, h4, h5, h6');
+    allHeadings.forEach((heading, idx) => {
+      if (!heading.id) {
+        const text = heading.textContent?.trim() || `heading-${idx}`;
+        let slug = text
+          .toLowerCase()
+          .replace(/[^\w\u4e00-\u9fa5]+/g, '-')
+          .replace(/^-+|-+$/g, '');
+        if (!slug) slug = `heading-${idx}`;
+        if (document.getElementById(slug)) {
+          slug = `${slug}-${idx}`;
+        }
+        heading.id = slug;
+      }
+    });
+
+    // 缓存 DOM 元素
     const tocNav = document.querySelector(".toc-nav") as HTMLElement;
     const activeIndicator = document.getElementById("active-indicator") as HTMLElement;
     const tocLinks = Array.from(document.querySelectorAll(".toc-nav a")) as HTMLAnchorElement[];
 
     if (!tocNav || !activeIndicator || tocLinks.length === 0) return;
 
-    // Prepare headings once
+    // 获取所有标题（现在它们都有 id 了）
     const headings = document.querySelectorAll("h1[id], h2[id], h3[id], h4[id], h5[id], h6[id]");
     if (headings.length === 0) return;
 
@@ -84,35 +97,25 @@ const { headings = [], showTOC = true } = Astro.props as TOCBarProps;
     let disableObserverUpdates = false;
     let resizeTimer: number | null = null;
 
-    // Update IDs only once at initialization
-    const headingIds = new Map<string, string>();
+    // 强制将标题 id 统一为 heading-0, heading-1, ... 并与 TOC 链接匹配
     headings.forEach((heading, index) => {
-      const oldId = heading.getAttribute("id");
       const newId = `heading-${index}`;
-
-      if (oldId && oldId !== newId) {
-        heading.setAttribute("id", newId);
-        headingIds.set(oldId, newId);
-
-        // Only update non-TOC links that point to this heading
-        document
-          .querySelectorAll(`a[href="#${oldId}"]:not(.toc-nav a)`)
-          .forEach((link) => link.setAttribute("href", `#${newId}`));
+      if (heading.id !== newId) {
+        heading.id = newId;
       }
     });
+    // 同步更新 TOC 链接的 href
+    tocLinks.forEach((link, idx) => {
+      link.setAttribute('href', `#heading-${idx}`);
+    });
 
-    // Position the active indicator - optimized
+    // 定位活动指示器
     function updateActiveIndicator(link: HTMLAnchorElement, animate = true): void {
       if (!link) return;
-
       const headingDepth = parseInt(link.getAttribute("data-heading-depth") || "1");
-
-      // Set the transition once
       activeIndicator.style.transition = animate
         ? "all 0.3s cubic-bezier(0.25, 0.1, 0.25, 1)"
         : "opacity 0.3s ease-in-out";
-
-      // Batch style updates in a single frame
       requestAnimationFrame(() => {
         activeIndicator.style.top = `${link.offsetTop}px`;
         activeIndicator.style.height = `${link.offsetHeight}px`;
@@ -122,111 +125,72 @@ const { headings = [], showTOC = true } = Astro.props as TOCBarProps;
       });
     }
 
-    // Check if element is in viewport - optimized
     function isElementInViewport(el: HTMLElement, container: HTMLElement): boolean {
       const rect = el.getBoundingClientRect();
       const containerRect = container.getBoundingClientRect();
-
       return rect.top >= containerRect.top && rect.bottom <= containerRect.bottom;
     }
 
-    // Handle TOC scrolling - optimized
     function scrollTOCToActiveItem(link: HTMLElement): void {
-      // Skip if link is already visible
       if (isElementInViewport(link, tocNav)) return;
-
       const tocLinkTop = link.offsetTop;
       const navHeight = tocNav.clientHeight;
       const scrollOffset = Math.max(0, tocLinkTop - navHeight / 2 + link.offsetHeight / 2);
-
-      tocNav.scrollTo({
-        top: scrollOffset,
-        behavior: "smooth",
-      });
+      tocNav.scrollTo({ top: scrollOffset, behavior: "smooth" });
     }
 
-    // Update active state - consolidated function
     function setActiveLink(link: HTMLAnchorElement): void {
       if (activeLink === link) return;
-
-      // Remove active class from previous link
-      if (activeLink) {
-        activeLink.classList.remove("active");
-      }
-
-      // Set new active link
+      if (activeLink) activeLink.classList.remove("active");
       link.classList.add("active");
       activeLink = link;
       updateActiveIndicator(link);
-
-      // Only scroll if needed
       if (!isElementInViewport(link, tocNav)) {
         scrollTOCToActiveItem(link);
       }
     }
 
-    // Optimize click handler with event delegation
+    // 点击事件委托
     tocNav.addEventListener("click", (e: MouseEvent) => {
       const target = e.target as HTMLElement;
       const link = target.closest("a") as HTMLAnchorElement | null;
       if (!link) return;
-
       e.preventDefault();
-
       const href = link.getAttribute("href") || "";
       if (!href || !href.startsWith("#")) return;
-
       const headingId = href.substring(1);
       const targetHeading = document.getElementById(headingId);
-
       if (targetHeading) {
-        // Disable observer updates temporarily
         disableObserverUpdates = true;
-
-        // Update UI immediately
         setActiveLink(link);
-
-        // Scroll to the heading
         targetHeading.scrollIntoView({ behavior: "smooth" });
-
-        // Update URL hash without triggering scroll
         history.pushState(null, "", href);
-
-        // Re-enable observer after navigation completes
         setTimeout(() => {
           disableObserverUpdates = false;
         }, 1000);
       }
     });
 
-    // Throttled resize handler
+    // 窗口大小变化时重新调整指示器
     window.addEventListener(
       "resize",
       () => {
         if (resizeTimer) clearTimeout(resizeTimer);
-
         resizeTimer = window.setTimeout(() => {
-          if (activeLink) {
-            updateActiveIndicator(activeLink, false);
-          }
+          if (activeLink) updateActiveIndicator(activeLink, false);
         }, 100);
       },
       { passive: true },
     );
 
-    // Optimized intersection observer
+    // 使用 IntersectionObserver 检测当前可见标题
     const observer = new IntersectionObserver(
       (entries) => {
         if (disableObserverUpdates) return;
-
-        // Get visible headings
         const visibleEntries = entries.filter((entry) => entry.isIntersecting);
         if (visibleEntries.length === 0) return;
-
-        // Find the heading closest to top of viewport
         let bestEntry = visibleEntries[0];
         let minDistance = Infinity;
-
         for (const entry of visibleEntries) {
           const distance = Math.abs(entry.boundingClientRect.top);
           if (distance < minDistance) {
@@ -234,60 +198,45 @@ const { headings = [], showTOC = true } = Astro.props as TOCBarProps;
             bestEntry = entry;
           }
         }
-
         const id = bestEntry.target.getAttribute("id");
         if (!id) return;
-
         const tocLink = document.querySelector(`.toc-nav a[href="#${id}"]`) as HTMLAnchorElement | null;
-
         if (tocLink && tocLink !== activeLink) {
           setActiveLink(tocLink);
         }
       },
       {
         rootMargin: "-50px 0px -75% 0px",
-        threshold: [0, 0.25], // Reduced number of thresholds
+        threshold: [0, 0.25],
       },
     );
 
-    // Observe headings
     headings.forEach((heading) => observer.observe(heading));
 
-    // Initial setup
+    // 初始设置：根据 URL hash 或第一个标题高亮
     setTimeout(() => {
-      // Use hash if available, otherwise first heading
       const hash = window.location.hash.substring(1);
       const initialHeading = hash ? document.getElementById(hash) : headings[0];
-
       if (initialHeading) {
         const id = initialHeading.getAttribute("id");
-        if (!id) return;
-
-        const tocLink = document.querySelector(`.toc-nav a[href="#${id}"]`) as HTMLAnchorElement | null;
-
-        if (tocLink) {
-          setActiveLink(tocLink);
+        if (id) {
+          const tocLink = document.querySelector(`.toc-nav a[href="#${id}"]`) as HTMLAnchorElement | null;
+          if (tocLink) setActiveLink(tocLink);
         }
       }
     }, 200);
 
-    // Hash change handler - simplified
+    // 监听 hash 变化
     window.addEventListener("hashchange", () => {
       if (disableObserverUpdates) return;
-
       const hash = window.location.hash.substring(1);
       if (!hash) return;
-
       disableObserverUpdates = true;
-
       const heading = document.getElementById(hash);
       if (heading) {
         const tocLink = document.querySelector(`.toc-nav a[href="#${hash}"]`) as HTMLAnchorElement | null;
-        if (tocLink) {
-          setActiveLink(tocLink);
-        }
+        if (tocLink) setActiveLink(tocLink);
       }
-
       setTimeout(() => {
         disableObserverUpdates = false;
       }, 1000);

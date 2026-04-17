@@ -101,12 +101,11 @@ const url = new URL(`/blog/${blog.slug}`, Astro.url.origin);
   >
     {!needProtect && (
       <div class="flex justify-end">
-        <a href={`/write?slug=${blog.slug}`} class="btn btn-primary btn-sm text-white" aria-label="Edit Article">
-          <Icon name="lucide:edit" class="w-4 h-4" />
+        <a href={`/write?slug=${blog.slug}`} class="btn btn-primary btn-sm text-white no-underline" aria-label="Edit Article">
           <span class="hidden sm:inline">Edit</span>
-         </a>
-       </div>
-      )}
+        </a>
+      </div>
+    )}
     <PostInfo
       pubDate={displayDate}
       badge={blog.data.badge}

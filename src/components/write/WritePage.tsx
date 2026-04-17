@@ -65,7 +65,8 @@ export default function WritePage({ categories = [] }: WritePageProps) {
                 <WritePreview form={form} coverPreviewUrl={coverPreviewUrl} onClose={closePreview} slug={slug || undefined} />
             ) : (
                 <>
-                    <div className='flex flex-col md:flex-row justify-center gap-6 px-4 md:px-6 pt-24 pb-12'>
+                    {/* 只增加了顶部间距（pt-24），其余保持原始布局 */}
+                    <div className='flex flex-col md:flex-row h-full justify-center gap-6 px-4 md:px-6 pt-24 pb-12 items-start'>
                         <div className="flex-1 min-w-0">
                             <WriteEditor />
                         </div>

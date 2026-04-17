@@ -2,7 +2,7 @@
 title: Telegram通行密钥(Passkeys)设置教程
 description: ''
 pubDate: 2026-04-18T02:43
-image: /images/ash2/ca8027d50e83eca2.png
+image: /images/ash2/330e57b7b35bb017.jpg
 draft: false
 tags: []
 categories: []

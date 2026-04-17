@@ -18,7 +18,7 @@ export interface NavCategory {
 
 export const NAV_DATA: NavCategory[] = [
     {
-        title: "开发工具",
+        title: "软件",
         icon: "lucide:code",
         items: [
             /* 

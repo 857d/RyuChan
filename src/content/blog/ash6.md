@@ -1,11 +1,17 @@
 ---
 title: Telegram群组敏感限制
-description: ''
+description: 加不进群组按照教程操作即可
 pubDate: 2026-04-18T03:15
 image: /images/ash6/330e57b7b35bb017.jpg
 draft: false
-tags: []
-categories: []
+tags:
+  - tg
+  - 限制
+  - 教程
+categories:
+  - 教程
+badge: ''
+password: '1234'
 ---
 群组敏感限制
 =================

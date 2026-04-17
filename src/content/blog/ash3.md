@@ -6,7 +6,7 @@ image: /images/ash3/392d4711732e4121.jpg
 draft: false
 tags: []
 categories: []
-password: '1234'
+badge: ''
 ---
 # 推特登录教程
 
@@ -153,3 +153,6 @@ https://www.accountboy.com/zh-cn-cny/news-detail/221
 把这个 **勾取消**（✘）。
 
 完成后，搜索和浏览都会解除限制。
+
+---
+# End

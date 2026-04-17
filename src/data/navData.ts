@@ -32,7 +32,7 @@ export const NAV_DATA: NavCategory[] = [
              */
             {
                 name: "Umami",
-                avatar: "https://img.xiaozhangya.xin/file/Logo/1753850918996_umami.png",
+                avatar: "https://cdn.phototourl.com/free/2026-04-17-e94cfa21-6edf-4395-93b7-e868a4632174.png",
                 description: "网站访问统计分析平台",
                 url: "https://us.umami.is/dashboard",
                 category: "统计分析",
@@ -155,39 +155,6 @@ export const NAV_DATA: NavCategory[] = [
                 url: "https://www.infinityfree.com",
                 category: "免费主机",
                 id: "SRV009"
-            }
-        ]
-    },
-    {
-        title: "娱乐资源",
-        icon: "lucide:image",
-        items: [
-            {
-                name: "Wallhaven",
-                avatar: "https://picbed.xiaozhangya.xin/picbed/20250726182418838.png",
-                description: "高质量壁纸分享社区",
-                url: "https://wallhaven.cc/",
-                category: "壁纸资源",
-                id: "ENT001"
-            },
-            {
-                name: "网盘资源社",
-                avatar: "https://img.xiaozhangya.xin/file/Logo/RwkDhIdV.png",
-                description: "网盘资源分享平台",
-                url: "https://www.wpzysq.com/",
-                category: "网盘资源",
-                id: "ENT002"
-            },
-            {
-                name: "宝可梦节点",
-                avatar: "https://52pokemon.huxx.top/favicon.ico",
-                description: "网络代理服务",
-                url: "https://52pokemon.huxx.top/login",
-                category: "代理服务",
-                id: "ENT003",
-                badge: "好用的加速器",
-                badgeIcon: "lucide:zap",
-                badgeColor: "amber"
             }
         ]
     },

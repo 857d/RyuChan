@@ -1,12 +1,20 @@
 ---
 title: TikTok免拔卡教程
-description: ''
+description: 按照教程操作，不懂的截图联系客服
 pubDate: 2026-04-18T02:38
 image: /images/ash1/161c86ef3cb75268.jpg
 draft: false
-tags: []
-categories: []
-badge: ''
+tags:
+  - TikTok
+  - TK
+  - 抖音
+  - 免拔卡
+  - 安卓
+  - ios
+categories:
+  - 教程
+badge: pin
+password: '1234'
 ---
 2026TikTok免拔卡就能刷国际版抖音视频规则和方法（苹果和安卓通用）
 =================

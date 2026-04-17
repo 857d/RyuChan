@@ -1,12 +1,19 @@
 ---
 title: X登录教程
-description: ''
+description: 按照教程登录，实在不懂的截图联系客服
 pubDate: 2026-04-18T03:03
 image: /images/ash3/392d4711732e4121.jpg
 draft: false
-tags: []
-categories: []
-badge: ''
+tags:
+  - 教程
+  - x
+  - 推特
+  - 登录
+  - 小蓝鸟
+categories:
+  - 教程
+badge: pin
+password: '1234'
 ---
 # 推特登录教程
 

@@ -65,24 +65,23 @@ const { headings = [], showTOC = true } = Astro.props as TOCBarProps;
 
 <script>
   document.addEventListener("astro:page-load", () => {
-    // ========== 用户可修改的偏移量 ==========
-    // 1. 导航栏高度（单位：px）—— 请根据您的实际导航栏高度修改（例如 64、72、80）
-    const MANUAL_NAVBAR_HEIGHT = 80;   // 👈 改成您网页顶部导航栏的实际高度
-    // 2. 点击跳转时的额外偏移（正值让标题更靠下，负值更靠上）
-    const EXTRA_OFFSET = 10;           // 👈 微调，通常保持 10 左右
-    // =====================================
+    // ========== 可调整参数 ==========
+    // 导航栏高度（单位：px），请根据您的实际导航栏修改（例如 64、72、80）
+    const NAVBAR_HEIGHT_FIXED = 80;   // 👈 改成您网页顶部导航栏的实际高度
+    // 点击跳转时的额外偏移（正值让标题更靠下，负值更靠上），用于微调
+    const CLICK_OFFSET = 10;          // 👈 可微调
+    // ===============================
 
-    // 获取导航栏高度（动态适配，优先使用手动设置的值）
+    // 动态获取导航栏高度（优先使用固定值，否则自动检测）
     function getNavbarHeight() {
-      // 如果手动设置了有效值，优先使用
-      if (MANUAL_NAVBAR_HEIGHT && MANUAL_NAVBAR_HEIGHT > 0) return MANUAL_NAVBAR_HEIGHT;
-      // 否则自动获取
+      if (NAVBAR_HEIGHT_FIXED && NAVBAR_HEIGHT_FIXED > 0) return NAVBAR_HEIGHT_FIXED;
       const navbar = document.querySelector('nav') || document.querySelector('.navbar') || document.querySelector('header');
       return navbar ? navbar.offsetHeight : 80;
     }
 
-    // 为所有没有 id 的标题生成 id（使用 textContent 避免类型错误）
+    // 为所有没有 id 的标题生成唯一 id（避免重复）
     const allHeadings = document.querySelectorAll('h1, h2, h3, h4, h5, h6');
+    const usedIds = new Set();
     allHeadings.forEach((heading, idx) => {
       if (!heading.id) {
         const text = heading.textContent?.trim() || `heading-${idx}`;
@@ -91,10 +90,16 @@ const { headings = [], showTOC = true } = Astro.props as TOCBarProps;
           .replace(/[^\w\u4e00-\u9fa5]+/g, '-')
           .replace(/^-+|-+$/g, '');
         if (!slug) slug = `heading-${idx}`;
-        if (document.getElementById(slug)) {
-          slug = `${slug}-${idx}`;
+        let finalSlug = slug;
+        let counter = 0;
+        while (usedIds.has(finalSlug) || document.getElementById(finalSlug)) {
+          counter++;
+          finalSlug = `${slug}-${counter}`;
         }
-        heading.id = slug;
+        usedIds.add(finalSlug);
+        heading.id = finalSlug;
+      } else {
+        usedIds.add(heading.id);
       }
     });
 
@@ -105,7 +110,7 @@ const { headings = [], showTOC = true } = Astro.props as TOCBarProps;
 
     if (!tocNav || !activeIndicator || tocLinks.length === 0) return;
 
-    // 获取所有标题（现在它们都有 id 了）
+    // 获取所有标题（现在它们都有唯一 id）
     const headings = document.querySelectorAll("h1[id], h2[id], h3[id], h4[id], h5[id], h6[id]");
     if (headings.length === 0) return;
 
@@ -113,14 +118,18 @@ const { headings = [], showTOC = true } = Astro.props as TOCBarProps;
     let disableObserverUpdates = false;
     let resizeTimer: number | null = null;
 
-    // 强制将标题 id 统一为 heading-0, heading-1, ... 并与 TOC 链接匹配
+    // 强制将标题 id 与 TOC 链接的 href 同步（确保一一对应）
+    // 注意：保留原有 id 但建立映射，而不是强制重命名
+    const idMap = new Map();
     headings.forEach((heading, index) => {
+      const originalId = heading.id;
       const newId = `heading-${index}`;
-      if (heading.id !== newId) {
+      if (originalId !== newId) {
         heading.id = newId;
+        idMap.set(originalId, newId);
       }
     });
-    // 同步更新 TOC 链接的 href
+    // 更新 TOC 链接的 href
     tocLinks.forEach((link, idx) => {
       link.setAttribute('href', `#heading-${idx}`);
     });
@@ -166,7 +175,7 @@ const { headings = [], showTOC = true } = Astro.props as TOCBarProps;
       }
     }
 
-    // 点击事件委托（修改点：使用精确偏移的滚动）
+    // ========== 修复点击跳转（精确偏移）==========
     tocNav.addEventListener("click", (e: MouseEvent) => {
       const target = e.target as HTMLElement;
       const link = target.closest("a") as HTMLAnchorElement | null;
@@ -180,9 +189,10 @@ const { headings = [], showTOC = true } = Astro.props as TOCBarProps;
         disableObserverUpdates = true;
         setActiveLink(link);
         
-        // 计算目标位置（减去导航栏高度）
+        // 获取导航栏高度
         const navbarHeight = getNavbarHeight();
-        const targetPosition = targetHeading.getBoundingClientRect().top + window.scrollY - navbarHeight - EXTRA_OFFSET;
+        // 计算目标位置（减去导航栏高度和额外偏移）
+        const targetPosition = targetHeading.getBoundingClientRect().top + window.scrollY - navbarHeight - CLICK_OFFSET;
         window.scrollTo({ top: targetPosition, behavior: "smooth" });
         history.pushState(null, "", href);
         
@@ -204,19 +214,22 @@ const { headings = [], showTOC = true } = Astro.props as TOCBarProps;
       { passive: true },
     );
 
-    // 使用 IntersectionObserver 检测当前可见标题（修改点：动态调整 rootMargin）
+    // ========== 修复滚动高亮（使用更精确的 IntersectionObserver）==========
     const navbarHeight = getNavbarHeight();
     const observer = new IntersectionObserver(
       (entries) => {
         if (disableObserverUpdates) return;
-        const visibleEntries = entries.filter((entry) => entry.isIntersecting);
+        // 找出所有进入视口的标题
+        const visibleEntries = entries.filter(entry => entry.isIntersecting);
         if (visibleEntries.length === 0) return;
+        // 选择距离视口顶部最近的标题（即第一个出现在导航栏下方的）
         let bestEntry = visibleEntries[0];
-        let minDistance = Infinity;
+        let bestDistance = Infinity;
         for (const entry of visibleEntries) {
-          const distance = Math.abs(entry.boundingClientRect.top - navbarHeight);
-          if (distance < minDistance) {
-            minDistance = distance;
+          const rect = entry.boundingClientRect;
+          const distance = Math.abs(rect.top - navbarHeight);
+          if (distance < bestDistance) {
+            bestDistance = distance;
             bestEntry = entry;
           }
         }
@@ -228,9 +241,10 @@ const { headings = [], showTOC = true } = Astro.props as TOCBarProps;
         }
       },
       {
-        rootMargin: `-${navbarHeight}px 0px -75% 0px`,
+        // 设置 rootMargin 为导航栏高度负值，使观察区域从导航栏下方开始
+        rootMargin: `-${navbarHeight}px 0px -70% 0px`,
         threshold: [0, 0.25],
-      },
+      }
     );
 
     headings.forEach((heading) => observer.observe(heading));

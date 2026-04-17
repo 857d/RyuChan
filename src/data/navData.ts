@@ -33,7 +33,7 @@ export const NAV_DATA: NavCategory[] = [
             {
                 name: "Telegram",
                 avatar: "https://cdn.phototourl.com/free/2026-04-17-f9dd10ed-b476-4800-8f29-533baf3c082a.png",
-                description: "需开启加速器",
+                description: "跨平台的即时通讯软件",
                 url: "https://telegram.org/",
                 category: "纸飞机",
                 id: "DEV001"
@@ -47,12 +47,28 @@ export const NAV_DATA: NavCategory[] = [
                 id: "DEV002"
             },
             {
-                name: "App Store",
-                avatar: "https://cdn.phototourl.com/free/2026-04-17-1e0752ec-661d-4d36-9c76-9537e6e9a390.png",
-                description: "可下载外区软件",
-                url: "https://www.apple.com/app-store/",
-                category: "外区ID",
+                name: "Shadowrocket",
+                avatar: "https://cdn.phototourl.com/free/2026-04-17-3cd5fd0c-a85f-4804-ab54-f93d51c70b25.webp",
+                description: "IOS端最好用的加速器",
+                url: "https://apps.apple.com/us/app/shadowrocket/id932747118",
+                category: "小火箭",
                 id: "DEV003"
+            },
+            {
+                name: "YouTube",
+                avatar: "https://cdn.phototourl.com/free/2026-04-17-a4633e7a-07c3-4fc6-8972-a9cc48fe911f.png",
+                description: "全球最大的视频分享平台",
+                url: "https://www.youtube.com/",
+                category: "油管",
+                id: "DEV004"
+            },
+            {
+                name: "Gmail",
+                avatar: "https://cdn.phototourl.com/member/2026-04-17-41450d8d-bd89-4c89-8a1c-4f1893730437.png",
+                description: "Google的免费网络邮件服务",
+                url: "https://workspace.google.com/intl/zh-CN/gmail/",
+                category: "谷歌邮箱",
+                id: "DEV005"
             },
             {
                 name: "Google",
@@ -60,7 +76,7 @@ export const NAV_DATA: NavCategory[] = [
                 description: "最强大的搜索引擎",
                 url: "https://www.google.cn/",
                 category: "谷歌",
-                id: "DEV004"
+                id: "DEV006"
             },
             {
                 name: "Instagram",
@@ -68,7 +84,7 @@ export const NAV_DATA: NavCategory[] = [
                 description: "国外人都在用的小红书",
                 url: "https://www.instagram.com/",
                 category: "ig·ins",
-                id: "DEV005"
+                id: "DEV007"
             },
             {
                 name: "Facebook",
@@ -76,7 +92,7 @@ export const NAV_DATA: NavCategory[] = [
                 description: "全球最大的社交网络服务平台",
                 url: "https://www.facebook.com/",
                 category: "脸书",
-                id: "DEV006"
+                id: "DEV008"
             },
             {
                 name: "Whateapp",
@@ -84,7 +100,7 @@ export const NAV_DATA: NavCategory[] = [
                 description: "跨平台即时通讯应用程序",
                 url: "https://www.whatsapp.com/",
                 category: "Whateapp",
-                id: "DEV007"
+                id: "DEV009"
             }
         ]
     },

@@ -31,130 +31,60 @@ export const NAV_DATA: NavCategory[] = [
              *   - RGB 颜色: "rgb(34, 197, 94)"
              */
             {
-                name: "Umami",
-                avatar: "https://cdn.phototourl.com/free/2026-04-17-e94cfa21-6edf-4395-93b7-e868a4632174.png",
-                description: "网站访问统计分析平台",
-                url: "https://us.umami.is/dashboard",
-                category: "统计分析",
+                name: "Telegram",
+                avatar: "https://cdn.phototourl.com/free/2026-04-17-f9dd10ed-b476-4800-8f29-533baf3c082a.png",
+                description: "需开启加速器",
+                url: "https://telegram.org/",
+                category: "纸飞机",
                 id: "DEV001"
             },
             {
-                name: "Vercel",
-                avatar: "https://img.xiaozhangya.xin/file/Logo/1753851435981_Vercel.png",
-                description: "现代化的前端部署平台",
-                url: "https://vercel.com/login?next=%2Fkobaridevs-projects",
-                category: "部署托管",
+                name: "X",
+                avatar: "https://cdn.phototourl.com/free/2026-04-17-6c61e698-1031-4acd-b712-3b0d20389a48.png",
+                description: "国外人都在用的微博",
+                url: "https://x.com/",
+                category: "推特",
                 id: "DEV002"
             },
             {
-                name: "Iconify",
-                avatar: "https://iconify.design/favicon.ico",
-                description: "海量图标库和图标搜索工具",
-                url: "https://iconify.design/",
-                category: "图标设计",
+                name: "App Store",
+                avatar: "https://cdn.phototourl.com/free/2026-04-17-1e0752ec-661d-4d36-9c76-9537e6e9a390.png",
+                description: "可下载外区软件",
+                url: "https://www.apple.com/app-store/",
+                category: "外区ID",
                 id: "DEV003"
             },
             {
-                name: "Iconfont",
-                avatar: "https://img.xiaozhangya.xin/file/Logo/DEPF9Ovv.png",
-                description: "阿里巴巴图标库",
-                url: "https://www.iconfont.cn/",
-                category: "图标设计",
+                name: "Google",
+                avatar: "https://cdn.phototourl.com/free/2026-04-17-08c19452-1578-4eb0-bee3-947526730092.png",
+                description: "最强大的搜索引擎",
+                url: "https://www.google.cn/",
+                category: "谷歌",
                 id: "DEV004"
             },
             {
-                name: "Shields",
-                avatar: "https://shields.io/img/logo.png",
-                description: "为项目生成各种徽章",
-                url: "https://shields.io/",
-                category: "徽章工具",
+                name: "Instagram",
+                avatar: "https://cdn.phototourl.com/free/2026-04-17-ed8b70e9-19a9-4e49-8a00-1eb279832602.png",
+                description: "国外人都在用的小红书",
+                url: "https://www.instagram.com/",
+                category: "ig·ins",
                 id: "DEV005"
             },
             {
-                name: "Clarity",
-                avatar: "https://picbed.xiaozhangya.xin/picbed/20250726225237829.png",
-                description: "微软的用户行为分析工具",
-                url: "https://clarity.microsoft.com/",
-                category: "用户分析",
+                name: "Facebook",
+                avatar: "https://cdn.phototourl.com/free/2026-04-17-e5aec287-925b-4a12-8d1d-23847e7ce245.png",
+                description: "全球最大的社交网络服务平台",
+                url: "https://www.facebook.com/",
+                category: "脸书",
                 id: "DEV006"
-            }
-        ]
-    },
-    {
-        title: "服务平台",
-        icon: "lucide:server",
-        items: [
-            {
-                name: "DigitalPlat",
-                avatar: "https://picbed.xiaozhangya.xin/picbed/20250726172053106.png",
-                description: "免费域名注册",
-                url: "https://dash.domain.digitalplat.org/panel/main",
-                category: "域名管理",
-                id: "SRV001"
             },
             {
-                name: "Cloudflare",
-                avatar: "https://www.cloudflare.com/favicon.ico",
-                description: "全球领先的CDN和安全服务",
-                url: "https://dash.cloudflare.com/login",
-                category: "域名托管服务",
-                id: "SRV002"
-            },
-            {
-                name: "EdgeOne",
-                avatar: "https://img.xiaozhangya.xin/file/Logo/cRfyZZ2A.png",
-                description: "国内CDN和边缘计算服务",
-                url: "https://console.edgeone.cn/login",
-                category: "CDN服务",
-                id: "SRV003"
-            },
-            {
-                name: "Spaceship",
-                avatar: "https://img.xiaozhangya.xin/file/Logo/1753850924810_Spaceship.png",
-                description: "A domain odyssey",
-                url: "https://www.spaceship.com/",
-                category: "域名售卖",
-                id: "SRV004"
-            },
-            {
-                name: "Waline",
-                avatar: "https://waline.js.org/favicon.ico",
-                description: "简洁、安全的评论系统",
-                url: "https://waline.js.org/",
-                category: "评论服务",
-                id: "SRV005"
-            },
-            {
-                name: "Giscus",
-                avatar: "https://avatars.githubusercontent.com/ml/9968?s=82&v=4",
-                description: "GitHub Discussions 评论系统",
-                url: "https://giscus.app/zh-CN",
-                category: "评论服务",
-                id: "SRV006"
-            },
-            {
-                name: "Akismet",
-                avatar: "https://img.xiaozhangya.xin/file/Logo/opkjgCvb.svg",
-                description: "保持评论区干净整洁的小助手",
-                url: "https://akismet.com/",
-                category: "评论服务",
-                id: "SRV007"
-            },
-            {
-                name: "GitHub",
-                avatar: "https://github.githubassets.com/favicons/favicon.svg",
-                description: "全球最大的开源社区",
-                url: "https://github.com",
-                category: "代码托管",
-                id: "SRV008"
-            },
-            {
-                name: "InfinityFree",
-                avatar: "https://img.xiaozhangya.xin/file/Logo/1754280946361_InfinityFree.png",
-                description: "免费托管WordPress和其他网站",
-                url: "https://www.infinityfree.com",
-                category: "免费主机",
-                id: "SRV009"
+                name: "Whateapp",
+                avatar: "https://cdn.phototourl.com/free/2026-04-17-8ce5a079-7bb0-449c-95d5-125a0c2c103a.png",
+                description: "跨平台即时通讯应用程序",
+                url: "https://www.whatsapp.com/",
+                category: "Whateapp",
+                id: "DEV007"
             }
         ]
     },

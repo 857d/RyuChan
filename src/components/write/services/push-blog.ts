@@ -95,16 +95,16 @@ export async function pushBlog(params: PushBlogParams): Promise<void> {
 
         const dateStr = form.date || formatDateTimeLocal()
         const frontmatter = {
-             title: form.title,
-             description: form.summary,
-             pubDate: dateStr,
-             image: coverPath,
-             draft: form.hidden,
-             tags: form.tags,
-             categories: form.categories,
-             badge: form.badge,
-             // 缺少 password 字段
-           };
+  title: form.title,
+  description: form.summary,
+  pubDate: dateStr,
+  image: coverPath,
+  draft: form.hidden,
+  tags: form.tags,
+  categories: form.categories,
+  badge: form.badge,
+  password: form.password || undefined,   // 新增这一行
+};
         }
         const finalContent = stringifyFrontmatter(frontmatter, mdToUpload)
 

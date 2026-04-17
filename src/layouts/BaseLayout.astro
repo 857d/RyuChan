@@ -159,7 +159,6 @@ const bannerSubtitle = pageConfig?.subtitle || "";
       </div>
     </div>
 
-
     <MobileTOC headings={headings} showTOC={showTOC} />
     <GlobalAudio />
 
@@ -210,6 +209,108 @@ const bannerSubtitle = pageConfig?.subtitle || "";
       });
     </script>
 
+    <!-- 目录交互修复脚本：为缺失 id 的标题生成 id，修正目录链接，实现滚动高亮 -->
+    <script is:inline>
+      function generateMissingHeadingIds() {
+        const headings = document.querySelectorAll('h1, h2, h3, h4, h5, h6');
+        headings.forEach(heading => {
+          if (!heading.id) {
+            let slug = heading.innerText
+              .toLowerCase()
+              .replace(/[^\w\u4e00-\u9fa5]+/g, '-')
+              .replace(/^-+|-+$/g, '');
+            if (!slug) slug = 'heading-' + Math.floor(Math.random() * 10000);
+            // 避免重复 ID
+            if (document.getElementById(slug)) {
+              slug = slug + '-' + Math.floor(Math.random() * 1000);
+            }
+            heading.id = slug;
+          }
+        });
+      }
+
+      function fixTOCLinks() {
+        // 根据实际目录链接的选择器（.toc-nav a, .mobile-toc-link, .sidebar-toc a）
+        const tocLinks = document.querySelectorAll('.toc-nav a, .mobile-toc-link, .sidebar-toc a, .toc-link');
+        tocLinks.forEach(link => {
+          const href = link.getAttribute('href');
+          if (href && href.startsWith('#')) {
+            const targetId = href.slice(1);
+            if (!document.getElementById(targetId)) {
+              // 尝试根据链接文本匹配标题
+              const linkText = link.innerText.trim();
+              const heading = Array.from(document.querySelectorAll('h1, h2, h3, h4, h5, h6')).find(
+                h => h.innerText.trim() === linkText
+              );
+              if (heading && heading.id) {
+                link.setAttribute('href', `#${heading.id}`);
+              } else {
+                // 如果仍无法匹配，移除链接的跳转功能（仅保留样式）
+                link.removeAttribute('href');
+              }
+            }
+          }
+        });
+      }
+
+      function initTOC() {
+        generateMissingHeadingIds();
+        fixTOCLinks();
+
+        // 滚动高亮当前章节对应的目录项
+        const tocLinks = document.querySelectorAll('.toc-nav a, .mobile-toc-link, .sidebar-toc a, .toc-link');
+        if (tocLinks.length === 0) return;
+
+        const headings = Array.from(document.querySelectorAll('h1, h2, h3, h4, h5, h6')).filter(h => h.id);
+        
+        function updateActive() {
+          let currentId = '';
+          for (const heading of headings) {
+            const rect = heading.getBoundingClientRect();
+            if (rect.top <= 100 && rect.bottom >= 0) {
+              currentId = heading.id;
+              break;
+            }
+          }
+          tocLinks.forEach(link => {
+            link.classList.remove('active');
+            if (link.getAttribute('href') === `#${currentId}`) {
+              link.classList.add('active');
+            }
+          });
+        }
+
+        // 为目录链接添加平滑滚动（如果尚未绑定）
+        tocLinks.forEach(link => {
+          if (!link.hasAttribute('data-toc-bound')) {
+            link.setAttribute('data-toc-bound', 'true');
+            link.addEventListener('click', (e) => {
+              const href = link.getAttribute('href');
+              if (href && href.startsWith('#')) {
+                e.preventDefault();
+                const target = document.getElementById(href.slice(1));
+                if (target) {
+                  target.scrollIntoView({ behavior: 'smooth' });
+                  history.pushState(null, null, href);
+                }
+              }
+            });
+          }
+        });
+
+        window.addEventListener('scroll', updateActive);
+        window.addEventListener('load', updateActive);
+        updateActive();
+      }
+
+      document.addEventListener('astro:page-load', initTOC);
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initTOC);
+      } else {
+        initTOC();
+      }
+    </script>
+
     <style is:inline>
       .btn-copy {
         position: relative;
@@ -218,7 +319,7 @@ const bannerSubtitle = pageConfig?.subtitle || "";
       .copy-success {
         animation: pulse 0.5s ease-in-out;
       }
-  .ryuchan-code-toolbar-copy-success svg {
+      .ryuchan-code-toolbar-copy-success svg {
         color: #10b981;
       }
       @keyframes pulse {
@@ -231,6 +332,16 @@ const bannerSubtitle = pageConfig?.subtitle || "";
         100% {
           transform: scale(1);
         }
+      }
+      /* 目录高亮样式（可根据主题调整） */
+      .toc-link.active,
+      .toc-nav a.active,
+      .mobile-toc-link.active,
+      .sidebar-toc a.active {
+        font-weight: bold;
+        color: #3b82f6;
+        border-left-color: #3b82f6;
+        background-color: rgba(59,130,246,0.1);
       }
     </style>
   </body>

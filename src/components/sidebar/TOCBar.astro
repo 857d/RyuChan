@@ -65,6 +65,12 @@ const { headings = [], showTOC = true } = Astro.props as TOCBarProps;
 
 <script>
   document.addEventListener("astro:page-load", () => {
+    // 获取导航栏高度（动态适配）
+    function getNavbarHeight() {
+      const navbar = document.querySelector('nav') || document.querySelector('.navbar') || document.querySelector('header');
+      return navbar ? navbar.offsetHeight : 80; // 默认80px
+    }
+
     // 为所有没有 id 的标题生成 id（使用 textContent 避免类型错误）
     const allHeadings = document.querySelectorAll('h1, h2, h3, h4, h5, h6');
     allHeadings.forEach((heading, idx) => {
@@ -150,7 +156,7 @@ const { headings = [], showTOC = true } = Astro.props as TOCBarProps;
       }
     }
 
-    // 点击事件委托
+    // 点击事件委托（修复：平滑滚动并减去导航栏高度）
     tocNav.addEventListener("click", (e: MouseEvent) => {
       const target = e.target as HTMLElement;
       const link = target.closest("a") as HTMLAnchorElement | null;
@@ -163,8 +169,13 @@ const { headings = [], showTOC = true } = Astro.props as TOCBarProps;
       if (targetHeading) {
         disableObserverUpdates = true;
         setActiveLink(link);
-        targetHeading.scrollIntoView({ behavior: "smooth" });
+        
+        // 计算目标位置（减去导航栏高度）
+        const navbarHeight = getNavbarHeight();
+        const targetPosition = targetHeading.getBoundingClientRect().top + window.scrollY - navbarHeight - 10; // 额外减10px留白
+        window.scrollTo({ top: targetPosition, behavior: "smooth" });
         history.pushState(null, "", href);
+        
         setTimeout(() => {
           disableObserverUpdates = false;
         }, 1000);
@@ -183,7 +194,8 @@ const { headings = [], showTOC = true } = Astro.props as TOCBarProps;
       { passive: true },
     );
 
-    // 使用 IntersectionObserver 检测当前可见标题
+    // 使用 IntersectionObserver 检测当前可见标题（调整偏移量以匹配导航栏）
+    const navbarHeight = getNavbarHeight();
     const observer = new IntersectionObserver(
       (entries) => {
         if (disableObserverUpdates) return;
@@ -192,7 +204,7 @@ const { headings = [], showTOC = true } = Astro.props as TOCBarProps;
         let bestEntry = visibleEntries[0];
         let minDistance = Infinity;
         for (const entry of visibleEntries) {
-          const distance = Math.abs(entry.boundingClientRect.top);
+          const distance = Math.abs(entry.boundingClientRect.top - navbarHeight);
           if (distance < minDistance) {
             minDistance = distance;
             bestEntry = entry;
@@ -206,7 +218,7 @@ const { headings = [], showTOC = true } = Astro.props as TOCBarProps;
         }
       },
       {
-        rootMargin: "-50px 0px -75% 0px",
+        rootMargin: `-${navbarHeight}px 0px -75% 0px`,
         threshold: [0, 0.25],
       },
     );

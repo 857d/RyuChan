@@ -19,7 +19,7 @@ site:
     images:
       - https://tc.alcy.cc/q/20250908/b2d656670551cb9ea6eda7b46b6c8ec0.webp
   icp: ICP备20261117号
-  icp_link: 
+  icp_link: null
   pages:
     home:
       title: Ash857's Blog
@@ -31,13 +31,13 @@ site:
         - 📚 纸上得来终觉浅，绝知此事要躬行！
     friend:
       title: 友情推荐
-      subtitle: 
+      subtitle: null
     about:
       title: About Me
       subtitle: 一个热爱生活与技术的普通人！
     navigation:
       title: 软件下载
-      subtitle: 
+      subtitle: null
     project:
       title: Projects
       subtitle: 展示一些个人搭建的项目，搬运工！
@@ -89,14 +89,14 @@ anime:
     listId: '8556173'
 umami:
   enable: false
-  baseUrl: 
+  baseUrl: null
   shareId: jToXL5Z3hnA1gKUw
   websiteId: 3f9afc6c-f0bd-4734-be15-6d053960d34d
   timezone: Asia/Shanghai
 user:
   name: Ash857
   description: ·教程·软件·服务·
-  site: 
+  site: null
   avatar: /profile.png
   sidebar:
     social:

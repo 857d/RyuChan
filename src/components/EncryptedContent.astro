@@ -4,7 +4,7 @@ const { slug, encryptedContent, password } = Astro.props;
 
 {
   password ? (
-    <div id={`encrypted-post-${slug}`} data-encrypted={encryptedContent} data-password={password}>
+    <div id={`encrypted-post-${slug}`} data-encrypted={encryptedContent} data-password={password} data-slug={slug}>
       <div class="password-card" style="max-width: 28rem; margin: 2rem auto;">
         <div class="card bg-base-100 shadow-xl border border-base-200">
           <div class="card-body items-center text-center">

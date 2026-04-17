@@ -31,12 +31,36 @@ export const NAV_DATA: NavCategory[] = [
              *   - RGB 颜色: "rgb(34, 197, 94)"
              */
             {
+                name: "客服QQ",
+                avatar: "https://cdn.phototourl.com/member/2026-04-17-80c50d45-46c6-42df-ab3b-66925a91f976.webp",
+                description: "任何问题请联系",
+                url: "https://tool.gljlw.com/qq/?qq=971165458",
+                category: "在线中",
+                id: "DEV001"
+            },
+            {
+                name: "客服QQ",
+                avatar: "https://cdn.phototourl.com/member/2026-04-17-80c50d45-46c6-42df-ab3b-66925a91f976.webp",
+                description: "购买请联系我",
+                url: "https://tool.gljlw.com/qq/?qq=1226407713",
+                category: "在线中",
+                id: "DEV002"
+            },
+            {
+                name: "Tg客服",
+                avatar: "https://cdn.phototourl.com/free/2026-04-17-f9dd10ed-b476-4800-8f29-533baf3c082a.png",
+                description: "跨平台的即时通讯软件",
+                url: "https://t.me/dianbaodashen1",
+                category: "纸飞机客服",
+                id: "DEV003"
+            },
+            {
                 name: "Telegram",
                 avatar: "https://cdn.phototourl.com/free/2026-04-17-f9dd10ed-b476-4800-8f29-533baf3c082a.png",
                 description: "跨平台的即时通讯软件",
                 url: "https://telegram.org/",
                 category: "纸飞机",
-                id: "DEV001"
+                id: "DEV004"
             },
             {
                 name: "X",
@@ -44,7 +68,7 @@ export const NAV_DATA: NavCategory[] = [
                 description: "国外人都在用的微博",
                 url: "https://x.com/",
                 category: "推特",
-                id: "DEV002"
+                id: "DEV005"
             },
             {
                 name: "Shadowrocket",
@@ -52,7 +76,7 @@ export const NAV_DATA: NavCategory[] = [
                 description: "IOS端最好用的加速器",
                 url: "https://apps.apple.com/us/app/shadowrocket/id932747118",
                 category: "小火箭",
-                id: "DEV003"
+                id: "DEV006"
             },
             {
                 name: "YouTube",
@@ -60,7 +84,7 @@ export const NAV_DATA: NavCategory[] = [
                 description: "全球最大的视频分享平台",
                 url: "https://www.youtube.com/",
                 category: "油管",
-                id: "DEV004"
+                id: "DEV007"
             },
             {
                 name: "Gmail",
@@ -68,7 +92,7 @@ export const NAV_DATA: NavCategory[] = [
                 description: "Google的免费网络邮件服务",
                 url: "https://workspace.google.com/intl/zh-CN/gmail/",
                 category: "谷歌邮箱",
-                id: "DEV005"
+                id: "DEV008"
             },
             {
                 name: "Google",
@@ -76,7 +100,7 @@ export const NAV_DATA: NavCategory[] = [
                 description: "最强大的搜索引擎",
                 url: "https://www.google.cn/",
                 category: "谷歌",
-                id: "DEV006"
+                id: "DEV009"
             },
             {
                 name: "Instagram",
@@ -84,7 +108,15 @@ export const NAV_DATA: NavCategory[] = [
                 description: "国外人都在用的小红书",
                 url: "https://www.instagram.com/",
                 category: "ig·ins",
-                id: "DEV007"
+                id: "DEV010"
+            },
+             {
+                name: "TikTok",
+                avatar: "https://cdn.phototourl.com/member/2026-04-17-9c6d5343-fd8c-41a0-8ae3-5b774705d69e.webp",
+                description: "国外人都在用的抖音",
+                url: "https://www.tiktok.com/",
+                category: "抖音",
+                id: "DEV011"
             },
             {
                 name: "Facebook",
@@ -92,7 +124,7 @@ export const NAV_DATA: NavCategory[] = [
                 description: "全球最大的社交网络服务平台",
                 url: "https://www.facebook.com/",
                 category: "脸书",
-                id: "DEV008"
+                id: "DEV012"
             },
             {
                 name: "Whateapp",
@@ -100,7 +132,7 @@ export const NAV_DATA: NavCategory[] = [
                 description: "跨平台即时通讯应用程序",
                 url: "https://www.whatsapp.com/",
                 category: "Whateapp",
-                id: "DEV009"
+                id: "DEV013"
             }
         ]
     },

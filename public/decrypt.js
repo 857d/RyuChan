@@ -12,12 +12,34 @@
     const errorMsg = document.getElementById('error-msg');
     const passwordCard = container.querySelector('.password-card');
     const decryptedContent = container.querySelector('.decrypted-content');
-    const editButton = document.getElementById('edit-button-container'); // 获取编辑按钮
+    const editButton = document.getElementById('edit-button-container');
 
     if (!passwordInput || !decryptBtn || !errorMsg || !passwordCard || !decryptedContent) return;
 
     async function decryptWithWebCrypto(encryptedData, password) {
-      // ... 保持原有解密逻辑不变
+      const parts = encryptedData.split(':');
+      if (parts.length !== 3) throw new Error('Invalid encrypted data format');
+      const salt = Uint8Array.from(atob(parts[0]), c => c.charCodeAt(0));
+      const iv = Uint8Array.from(atob(parts[1]), c => c.charCodeAt(0));
+      const ciphertext = Uint8Array.from(atob(parts[2]), c => c.charCodeAt(0));
+      
+      const enc = new TextEncoder();
+      const keyMaterial = await crypto.subtle.importKey(
+        'raw', enc.encode(password), 'PBKDF2', false, ['deriveKey']
+      );
+      const key = await crypto.subtle.deriveKey(
+        { name: 'PBKDF2', salt, iterations: 100000, hash: 'SHA-256' },
+        keyMaterial,
+        { name: 'AES-CBC', length: 256 },
+        false,
+        ['decrypt']
+      );
+      const decrypted = await crypto.subtle.decrypt(
+        { name: 'AES-CBC', iv },
+        key,
+        ciphertext.buffer
+      );
+      return new TextDecoder().decode(decrypted);
     }
 
     async function decryptAndShow() {
@@ -33,7 +55,7 @@
           decryptedContent.innerHTML = `<div class="prose prose-lg prose-code:text-base max-w-none text-justify prose-headings:scroll-mt-20 prose-img:rounded-2xl prose-img:mx-auto prose-img:cursor-pointer">${html}</div>`;
           passwordCard.style.display = 'none';
           decryptedContent.style.display = 'block';
-          if (editButton) editButton.style.display = 'flex'; // 显示编辑按钮
+          if (editButton) editButton.style.display = 'flex';
           container.setAttribute('data-decrypted', 'true');
         } catch (err) {
           console.error(err);

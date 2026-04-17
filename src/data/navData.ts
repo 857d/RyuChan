@@ -191,42 +191,4 @@ export const NAV_DATA: NavCategory[] = [
             }
         ]
     },
-    {
-        title: "Useful Resources",
-        icon: "lucide:bookmark",
-        items: [
-            {
-                name: "Astro",
-                avatar: "https://img.xiaozhangya.xin/file/Logo/HXADhsBn.png",
-                description: "Astro是一个现代化的静态网站生成器",
-                url: "https://docs.astro.build",
-                category: "文档",
-                id: "RES001"
-            },
-            {
-                name: "Tailwind",
-                avatar: "https://img.xiaozhangya.xin/file/Logo/mrp0EiyB.png",
-                description: "Tailwind CSS是一个功能类优先的CSS框架",
-                url: "https://tailwindcss.com/docs",
-                category: "文档",
-                id: "RES002"
-            },
-            {
-                name: "DaisyUI",
-                avatar: "https://img.xiaozhangya.xin/file/Logo/WEl6nL3H.svg",
-                description: "DaisyUI是一个基于Tailwind CSS的组件库",
-                url: "https://daisyui.com/components/",
-                category: "UI 框架",
-                id: "RES003"
-            },
-            {
-                name: "TypeScript",
-                avatar: "https://img.xiaozhangya.xin/file/Logo/FL3XpMDh.png",
-                description: "TypeScript是JavaScript的超集",
-                url: "https://www.typescriptlang.org/docs/handbook/intro.html",
-                category: "文档",
-                id: "RES004"
-            }
-        ]
-    }
 ];

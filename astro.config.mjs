@@ -8,8 +8,8 @@ import icon from "astro-icon";
 import { defineConfig } from "astro/config";
 import rehypeExternalLinks from "rehype-external-links";
 import rehypeKatex from "rehype-katex";
-import rehypeSlug from "rehype-slug";                     // 新增
-import rehypeAutolinkHeadings from "rehype-autolink-headings"; // 新增
+import rehypeSlug from "rehype-slug";
+// import rehypeAutolinkHeadings from "rehype-autolink-headings"; // 暂时注释，避免干扰
 import remarkMath from "remark-math";
 import { CODE_THEME, USER_SITE, GITHUB_CONFIG } from "./src/config.ts";
 
@@ -216,6 +216,7 @@ export default defineConfig({
     },
     remarkPlugins: [remarkMath, remarkReadingTime],
     rehypePlugins: [
+      rehypeSlug,                           // 放到最前面，确保先生成 id
       rehypeKatex,
       [
         rehypeExternalLinks,
@@ -223,8 +224,7 @@ export default defineConfig({
           content: { type: "text", value: "↗" },
         },
       ],
-      rehypeSlug,                           // 为标题添加 id
-      [rehypeAutolinkHeadings, { behavior: "wrap" }], // 可选：标题旁生成链接图标
+      // [rehypeAutolinkHeadings, { behavior: "wrap" }], // 暂时禁用，避免干扰
     ],
   },
   vite: {

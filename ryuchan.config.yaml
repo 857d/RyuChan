@@ -104,10 +104,18 @@ user:
         ariaLabel: QQ
         title: QQ
         svg: ri:qq-line
+      - href: ''
+        title: New Link
+        ariaLabel: New Link
+        svg: ri:link
       - href: https://t.me/dianbaodashen1
         title: Telegram
         ariaLabel: Telegram
         svg: ri:telegram-line
+      - href: ''
+        title: New Link
+        ariaLabel: New Link
+        svg: ri:link
   footer:
     social:
       - href: https://github.com/

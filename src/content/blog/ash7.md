@@ -1,7 +1,7 @@
 ---
 title: 软件下载教程
 description: ''
-pubDate: 2026-04-18T03:19
+pubDate: '2026-04-18T03:19'
 image: /images/ash7/8548f38d63b591c8.jpg
 draft: false
 tags:
@@ -11,7 +11,7 @@ tags:
 categories:
   - 教程
 badge: ''
-password: '1234'
+password: KomrQ7porX82
 ---
 软件下载教程
 =================

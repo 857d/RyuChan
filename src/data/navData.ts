@@ -108,14 +108,6 @@ export const NAV_DATA: NavCategory[] = [
         "url": "https://www.whatsapp.com/",
         "category": "WhatsApp",
         "id": "DEV013"
-      },
-      {
-        "name": "客服QQ",
-        "avatar": "https://cdn.phototourl.com/member/2026-04-17-80c50d45-46c6-42df-ab3b-66925a91f976.webp",
-        "description": "任何问题请联系",
-        "url": "https://tool.gljlw.com/qq/?qq=971165458",
-        "category": "在线中",
-        "id": "DEV001"
       }
     ]
   }

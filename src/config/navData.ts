@@ -110,12 +110,20 @@ export const NAV_DATA: NavCategory[] = [
         "id": "DEV013"
       },
       {
-        "name": "客服QQ",
-        "avatar": "https://cdn.phototourl.com/member/2026-04-17-80c50d45-46c6-42df-ab3b-66925a91f976.webp",
-        "description": "任何问题请联系",
-        "url": "https://tool.gljlw.com/qq/?qq=971165458",
-        "category": "在线中",
-        "id": "DEV001"
+        "name": "ChatGPT",
+        "avatar": "https://cdn.phototourl.com/member/2026-04-20-cd1d5b1b-25b1-4485-8d49-5342ea34e721.webp",
+        "description": "一款基于大语言模型（LLM）的‌对话式人工智能聊天机器人‌",
+        "url": "https://chatgpt.com/",
+        "category": "ChatGPT",
+        "id": "ITEM1776688970000"
+      },
+      {
+        "name": "Gemini",
+        "avatar": "https://cdn.phototourl.com/member/2026-04-20-629aad54-fb8d-4b12-8133-1ba1ae78902e.webp",
+        "description": " Google 开发的多模态生成式人工智能 (AI) 模型系列和聊天机器人",
+        "url": "https://gemini.google.com/app",
+        "category": "谷歌Ai",
+        "id": "ITEM1776689048519"
       }
     ]
   }

@@ -209,7 +209,7 @@ const bannerSubtitle = pageConfig?.subtitle || "";
       });
     </script>
 
-    <!-- 全局密码处理脚本（修复客户端导航问题） -->
+    <!-- 全局密码处理脚本（已修复：增加 trim 和判空逻辑） -->
     <script is:inline>
       (function() {
         let modalOverlay = null;
@@ -322,14 +322,16 @@ const bannerSubtitle = pageConfig?.subtitle || "";
 
           async function decryptAndShow() {
             const userPassword = passwordInput.value;
-            if (!userPassword) {
+            // 关键修复：去除前后空格，并判空
+            const trimmedPassword = userPassword ? userPassword.trim() : '';
+            if (!trimmedPassword) {
               errorMsg.textContent = '请输入密码';
               errorMsg.classList.remove('hidden');
               return;
             }
-            if (userPassword === storedPassword) {
+            if (trimmedPassword === storedPassword) {
               try {
-                const html = await decryptWithWebCrypto(encryptedData, userPassword);
+                const html = await decryptWithWebCrypto(encryptedData, trimmedPassword);
                 decryptedContent.innerHTML = `<div class="prose prose-lg prose-code:text-base max-w-none text-justify prose-headings:scroll-mt-20 prose-img:rounded-2xl prose-img:mx-auto prose-img:cursor-pointer">${html}</div>`;
                 restoreCardToOriginal(passwordCard, originalParent);
                 passwordCard.style.display = 'none';

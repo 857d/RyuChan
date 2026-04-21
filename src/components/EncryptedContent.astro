@@ -4,8 +4,8 @@ const { slug, encryptedContent, password } = Astro.props;
 
 {
   password ? (
-    <div data-encrypted={encryptedContent} data-password={password}>
-      <div style="max-width: 28rem; margin: 2rem auto; border:1px solid #ccc; padding:20px; border-radius:8px;">
+    <div id={`encrypted-post-${slug}`} data-encrypted={encryptedContent} data-password={password} data-slug={slug}>
+      <div class="password-card" style="max-width: 28rem; margin: 2rem auto; border:1px solid #ccc; padding:20px; border-radius:8px;">
         <h2>🔐 此文章已加密</h2>
         <p>请输入密码查看内容</p>
         <input type="password" id="password-input" placeholder="密码" style="width:100%; padding:8px; margin-bottom:10px;" />
@@ -21,79 +21,71 @@ const { slug, encryptedContent, password } = Astro.props;
 
 <script is:inline>
   (function() {
-    console.log('脚本开始执行');
-    const container = document.currentScript.closest('[data-encrypted]');
-    if (!container) {
-      console.error('未找到容器');
-      return;
-    }
-    const storedPassword = container.getAttribute('data-password');
-    const encryptedData = container.getAttribute('data-encrypted');
-    const passwordInput = document.getElementById('password-input');
-    const decryptBtn = document.getElementById('decrypt-btn');
-    const errorMsg = document.getElementById('error-msg');
-    const decryptedContent = container.querySelector('.decrypted-content');
-
-    console.log('存储的密码:', storedPassword);
-    console.log('加密数据存在:', !!encryptedData);
-    console.log('输入框:', passwordInput);
-    console.log('按钮:', decryptBtn);
-
-    if (!passwordInput || !decryptBtn || !errorMsg || !decryptedContent) {
-      console.error('元素缺失');
-      return;
-    }
-
-    async function decryptWithWebCrypto(encryptedData, password) {
-      const parts = encryptedData.split(':');
-      if (parts.length !== 3) throw new Error('Invalid encrypted data format');
-      const salt = Uint8Array.from(atob(parts[0]), c => c.charCodeAt(0));
-      const iv = Uint8Array.from(atob(parts[1]), c => c.charCodeAt(0));
-      const ciphertext = Uint8Array.from(atob(parts[2]), c => c.charCodeAt(0));
-      const enc = new TextEncoder();
-      const keyMaterial = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveKey']);
-      const key = await crypto.subtle.deriveKey(
-        { name: 'PBKDF2', salt, iterations: 100000, hash: 'SHA-256' },
-        keyMaterial,
-        { name: 'AES-CBC', length: 256 },
-        false,
-        ['decrypt']
-      );
-      const decrypted = await crypto.subtle.decrypt({ name: 'AES-CBC', iv }, key, ciphertext.buffer);
-      return new TextDecoder().decode(decrypted);
-    }
-
-    async function handleDecrypt() {
-      console.log('验证按钮被点击');
-      const userPassword = passwordInput.value.trim();
-      console.log('用户输入:', userPassword);
-      if (!userPassword) {
-        errorMsg.textContent = '请输入密码';
+    let retry = 0;
+    function init() {
+      const container = document.getElementById(`encrypted-post-${slug}`);
+      if (!container) {
+        if (retry < 20) {
+          retry++;
+          setTimeout(init, 100);
+          return;
+        }
+        console.error('找不到容器，放弃');
         return;
       }
-      if (userPassword === storedPassword) {
-        try {
-          const html = await decryptWithWebCrypto(encryptedData, userPassword);
-          decryptedContent.innerHTML = html;
-          decryptedContent.style.display = 'block';
-          // 隐藏密码输入区域
-          const inputArea = container.querySelector('div[style*="border"]');
-          if (inputArea) inputArea.style.display = 'none';
-          errorMsg.textContent = '';
-          console.log('解密成功');
-        } catch (err) {
-          console.error(err);
-          errorMsg.textContent = '解密失败，请重试';
-        }
-      } else {
-        errorMsg.textContent = '密码错误';
+      const storedPassword = container.getAttribute('data-password');
+      const encryptedData = container.getAttribute('data-encrypted');
+      const passwordInput = document.getElementById('password-input');
+      const decryptBtn = document.getElementById('decrypt-btn');
+      const errorMsg = document.getElementById('error-msg');
+      const decryptedContent = container.querySelector('.decrypted-content');
+      
+      if (!passwordInput || !decryptBtn || !errorMsg || !decryptedContent) {
+        console.error('缺少必要元素');
+        return;
       }
+      
+      console.log('存储密码:', storedPassword);
+      
+      async function decryptWithWebCrypto(encryptedData, password) {
+        const parts = encryptedData.split(':');
+        if (parts.length !== 3) throw new Error('Invalid format');
+        const salt = Uint8Array.from(atob(parts[0]), c => c.charCodeAt(0));
+        const iv = Uint8Array.from(atob(parts[1]), c => c.charCodeAt(0));
+        const ciphertext = Uint8Array.from(atob(parts[2]), c => c.charCodeAt(0));
+        const enc = new TextEncoder();
+        const keyMaterial = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveKey']);
+        const key = await crypto.subtle.deriveKey({ name: 'PBKDF2', salt, iterations: 100000, hash: 'SHA-256' }, keyMaterial, { name: 'AES-CBC', length: 256 }, false, ['decrypt']);
+        const decrypted = await crypto.subtle.decrypt({ name: 'AES-CBC', iv }, key, ciphertext.buffer);
+        return new TextDecoder().decode(decrypted);
+      }
+      
+      async function handleDecrypt() {
+        const userPassword = passwordInput.value.trim();
+        if (!userPassword) {
+          errorMsg.textContent = '请输入密码';
+          return;
+        }
+        if (userPassword === storedPassword) {
+          try {
+            const html = await decryptWithWebCrypto(encryptedData, userPassword);
+            decryptedContent.innerHTML = html;
+            decryptedContent.style.display = 'block';
+            const card = container.querySelector('.password-card');
+            if (card) card.style.display = 'none';
+            errorMsg.textContent = '';
+          } catch (err) {
+            console.error(err);
+            errorMsg.textContent = '解密失败';
+          }
+        } else {
+          errorMsg.textContent = '密码错误';
+        }
+      }
+      
+      decryptBtn.onclick = handleDecrypt;
+      passwordInput.onkeypress = (e) => { if (e.key === 'Enter') handleDecrypt(); };
     }
-
-    decryptBtn.addEventListener('click', handleDecrypt);
-    passwordInput.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') handleDecrypt();
-    });
-    console.log('事件绑定完成');
+    init();
   })();
 </script>

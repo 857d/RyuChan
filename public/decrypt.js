@@ -37,7 +37,7 @@
 
   function moveCardToModal(card) {
     const overlay = createModalOverlay();
-    overlay.innerHTML = ''; // 清空可能残留
+    overlay.innerHTML = '';
     card.style.margin = '0';
     card.style.maxWidth = '28rem';
     card.style.width = '100%';
@@ -76,7 +76,7 @@
 
     if (!passwordCard || !passwordInput || !decryptBtn || !errorMsg || !decryptedContent) return;
 
-    // 如果已经处理过（比如重复调用），避免重复移动
+    // 避免重复移动
     if (passwordCard.parentNode === modalOverlay) return;
 
     const originalParent = passwordCard.parentNode;
@@ -146,7 +146,6 @@
     });
   }
 
-  // 确保在页面完全加载后执行（包括 Astro 导航）
   function runInit() {
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', init);
@@ -157,7 +156,6 @@
 
   runInit();
   document.addEventListener('astro:page-load', () => {
-    // 重置状态，因为新页面可能没有解密
     isDecrypted = false;
     init();
   });

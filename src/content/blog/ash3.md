@@ -13,7 +13,7 @@ tags:
 categories:
   - 教程
 badge: pin
-password: FKoPuGLlCALb
+password: 2btrVTLqwLnv
 ---
 # 推特登录教程
 

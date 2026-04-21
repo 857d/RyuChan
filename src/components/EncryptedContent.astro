@@ -4,20 +4,13 @@ const { slug, encryptedContent, password } = Astro.props;
 
 {
   password ? (
-    <div id={`encrypted-post-${slug}`} data-encrypted={encryptedContent} data-password={password} data-slug={slug}>
-      <div class="password-card" style="max-width: 28rem; margin: 2rem auto;">
-        <div class="card bg-base-100 shadow-xl border border-base-200">
-          <div class="card-body items-center text-center">
-            <div class="text-4xl mb-2">🔐</div>
-            <h2 class="card-title text-xl">此文章已加密</h2>
-            <p class="text-sm text-base-content/70 mb-4">请输入密码查看内容</p>
-            <div class="form-control w-full max-w-xs">
-              <input type="password" id="password-input" placeholder="密码" class="input input-bordered w-full mb-4" autofocus />
-              <button id="decrypt-btn" class="btn btn-primary">验证</button>
-            </div>
-            <div id="error-msg" class="text-error text-sm mt-2 hidden"></div>
-          </div>
-        </div>
+    <div data-encrypted={encryptedContent} data-password={password}>
+      <div style="max-width: 28rem; margin: 2rem auto; border:1px solid #ccc; padding:20px; border-radius:8px;">
+        <h2>🔐 此文章已加密</h2>
+        <p>请输入密码查看内容</p>
+        <input type="password" id="password-input" placeholder="密码" style="width:100%; padding:8px; margin-bottom:10px;" />
+        <button id="decrypt-btn" style="padding:8px 16px;">验证</button>
+        <div id="error-msg" style="color:red; margin-top:10px;"></div>
       </div>
       <div class="decrypted-content" style="display: none;"></div>
     </div>
@@ -28,55 +21,28 @@ const { slug, encryptedContent, password } = Astro.props;
 
 <script is:inline>
   (function() {
+    console.log('脚本开始执行');
     const container = document.currentScript.closest('[data-encrypted]');
     if (!container) {
-      console.error('未找到加密容器');
+      console.error('未找到容器');
       return;
     }
-    if (container.getAttribute('data-decrypted') === 'true') return;
-
-    const passwordCard = container.querySelector('.password-card');
-    const passwordInput = container.querySelector('#password-input');
-    const decryptBtn = container.querySelector('#decrypt-btn');
-    const errorMsg = container.querySelector('#error-msg');
-    const decryptedContent = container.querySelector('.decrypted-content');
-
-    if (!passwordCard || !passwordInput || !decryptBtn || !errorMsg || !decryptedContent) {
-      console.error('密码组件元素缺失');
-      return;
-    }
-
     const storedPassword = container.getAttribute('data-password');
     const encryptedData = container.getAttribute('data-encrypted');
+    const passwordInput = document.getElementById('password-input');
+    const decryptBtn = document.getElementById('decrypt-btn');
+    const errorMsg = document.getElementById('error-msg');
+    const decryptedContent = container.querySelector('.decrypted-content');
 
-    // 调试输出
-    console.log('存储的密码原始值:', storedPassword);
-    console.log('存储的密码长度:', storedPassword ? storedPassword.length : 0);
+    console.log('存储的密码:', storedPassword);
+    console.log('加密数据存在:', !!encryptedData);
+    console.log('输入框:', passwordInput);
+    console.log('按钮:', decryptBtn);
 
-    // 创建全屏遮罩层（背景虚化）
-    const overlay = document.createElement('div');
-    overlay.style.cssText = `
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.6);
-      backdrop-filter: blur(8px);
-      z-index: 9999;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    `;
-    document.body.appendChild(overlay);
-
-    // 将密码卡片移动到遮罩层中
-    overlay.appendChild(passwordCard);
-    passwordCard.style.margin = '0';
-    passwordCard.style.maxWidth = '28rem';
-    passwordCard.style.width = '100%';
-    passwordCard.style.display = 'block';
-    document.body.style.overflow = 'hidden';
+    if (!passwordInput || !decryptBtn || !errorMsg || !decryptedContent) {
+      console.error('元素缺失');
+      return;
+    }
 
     async function decryptWithWebCrypto(encryptedData, password) {
       const parts = encryptedData.split(':');
@@ -97,43 +63,35 @@ const { slug, encryptedContent, password } = Astro.props;
       return new TextDecoder().decode(decrypted);
     }
 
-    async function decryptAndShow() {
-      const userPassword = passwordInput.value;
-      const trimmedUser = userPassword ? userPassword.trim() : '';
-      console.log('输入的密码原始值:', userPassword);
-      console.log('输入的密码trim后:', trimmedUser);
-      console.log('存储的密码:', storedPassword);
-      if (!trimmedUser) {
+    async function handleDecrypt() {
+      console.log('验证按钮被点击');
+      const userPassword = passwordInput.value.trim();
+      console.log('用户输入:', userPassword);
+      if (!userPassword) {
         errorMsg.textContent = '请输入密码';
-        errorMsg.classList.remove('hidden');
         return;
       }
-      if (trimmedUser === storedPassword) {
+      if (userPassword === storedPassword) {
         try {
-          const html = await decryptWithWebCrypto(encryptedData, trimmedUser);
-          decryptedContent.innerHTML = `<div class="prose prose-lg prose-code:text-base max-w-none text-justify prose-headings:scroll-mt-20 prose-img:rounded-2xl prose-img:mx-auto prose-img:cursor-pointer">${html}</div>`;
-          overlay.remove();
-          passwordCard.style.display = 'none';
+          const html = await decryptWithWebCrypto(encryptedData, userPassword);
+          decryptedContent.innerHTML = html;
           decryptedContent.style.display = 'block';
-          const editButton = container.querySelector('#edit-button-container');
-          if (editButton) editButton.style.display = 'flex';
-          container.setAttribute('data-decrypted', 'true');
-          document.body.style.overflow = '';
+          container.querySelector('div[style*="border"]').style.display = 'none';
+          errorMsg.textContent = '';
           console.log('解密成功');
         } catch (err) {
           console.error(err);
-          errorMsg.textContent = '解密失败，密码错误或内容损坏';
-          errorMsg.classList.remove('hidden');
+          errorMsg.textContent = '解密失败，请重试';
         }
       } else {
-        errorMsg.textContent = '密码错误，请重试';
-        errorMsg.classList.remove('hidden');
+        errorMsg.textContent = '密码错误';
       }
     }
 
-    decryptBtn.onclick = decryptAndShow;
-    passwordInput.onkeypress = (e) => {
-      if (e.key === 'Enter') decryptAndShow();
-    };
+    decryptBtn.addEventListener('click', handleDecrypt);
+    passwordInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') handleDecrypt();
+    });
+    console.log('事件绑定完成');
   })();
 </script>

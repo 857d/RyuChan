@@ -2,38 +2,9 @@
 const { slug, encryptedContent, password } = Astro.props;
 ---
 
-{
-  password ? (
-    <div data-encrypted={encryptedContent} data-password={password}>
-      <div style="border:2px solid red; padding:20px; margin:20px;">
-        <h2>🔐 加密测试</h2>
-        <p>密码: {password}</p>
-        <input type="password" id="pwd" placeholder="输入密码" />
-        <button id="btn">验证</button>
-        <div id="msg"></div>
-      </div>
-      <div class="decrypted" style="display:none;"></div>
-    </div>
-  ) : (
-    <p>无密码</p>
-  )
-}
-
-<script is:inline>
-  const container = document.currentScript.closest('[data-encrypted]');
-  const stored = container?.getAttribute('data-password');
-  const encrypted = container?.getAttribute('data-encrypted');
-  const btn = document.getElementById('btn');
-  const pwd = document.getElementById('pwd');
-  const msg = document.getElementById('msg');
-  const decryptedDiv = container?.querySelector('.decrypted');
-  btn.onclick = () => {
-    if (pwd.value === stored) {
-      decryptedDiv.innerHTML = '<p>解密成功！内容将显示在这里。</p>';
-      decryptedDiv.style.display = 'block';
-      container.style.display = 'none';
-    } else {
-      msg.innerText = '密码错误';
-    }
-  };
-</script>
+<div style="border: 4px solid red; padding: 20px; margin: 20px; background: #f0f0f0;">
+  <h3>🔐 加密组件测试</h3>
+  <p>slug: {slug}</p>
+  <p>password: {password}</p>
+  <p>encryptedContent 长度: {encryptedContent?.length || 0}</p>
+</div>

@@ -76,7 +76,7 @@
         if (userPassword === storedPassword) {
           try {
             const html = await decryptWithWebCrypto(encryptedData, userPassword);
-            decryptedContent.innerHTML = `<div class="prose prose-lg ...">${html}</div>`;
+            decryptedContent.innerHTML = `<div class="prose prose-lg prose-code:text-base max-w-none text-justify prose-headings:scroll-mt-20 prose-img:rounded-2xl prose-img:mx-auto prose-img:cursor-pointer">${html}</div>`;
             restoreCardToOriginal(passwordCard, originalParent);
             passwordCard.style.display = 'none';
             decryptedContent.style.display = 'block';

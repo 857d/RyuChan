@@ -4,14 +4,14 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { glob } from 'glob';
 import matter from 'gray-matter';
-import crypto from 'crypto';
+import crypto from 'crypto'; // 保留原导入，但实际不再使用
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const BLOG_DIR = path.resolve(__dirname, '../src/content/blog');
 
-// 生成随机密码（12位字母数字混合）
+// 生成 4 位数字密码（范围 1000～9999）
 function generatePassword() {
-  return crypto.randomBytes(9).toString('base64').replace(/[+/=]/g, '').slice(0, 12);
+  return Math.floor(Math.random() * 9000 + 1000).toString();
 }
 
 async function updatePasswords() {

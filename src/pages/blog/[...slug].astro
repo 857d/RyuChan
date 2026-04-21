@@ -32,7 +32,7 @@ export async function getStaticPaths() {
         index < publishedPosts.length - 1 ? publishedPosts[index + 1] : null;
       const nextPost = index > 0 ? publishedPosts[index - 1] : null;
 
-      // 强制加密：使用固定密码 9674（可根据需要修改）
+      // 强制加密：使用固定密码 9674
       const articlePassword = "9674";
       let encryptedHtml = "";
       let needProtect = true;
@@ -93,7 +93,7 @@ const url = new URL(`/blog/${blog.slug}`, Astro.url.origin);
     image={blog.data.image}
     infoIcon="lucide:info"
   >
-    <!-- 未加密文章的编辑按钮（由于强制加密，此按钮不会显示） -->
+    <!-- 未加密文章的编辑按钮（强制加密下不显示） -->
     {!needProtect && (
       <div class="flex justify-end">
         <a href={`/write?slug=${blog.slug}`} class="btn btn-primary btn-sm text-white no-underline" aria-label="Edit Article">

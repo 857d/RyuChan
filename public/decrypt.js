@@ -1,7 +1,7 @@
 // public/decrypt.js
 (function() {
-  // 存储遮罩层元素
   let modalOverlay = null;
+  let isDecrypted = false;
 
   function createModalOverlay() {
     if (modalOverlay) return modalOverlay;
@@ -24,7 +24,6 @@
     return overlay;
   }
 
-  // 确保导航栏的 z-index 高于遮罩层
   function ensureNavbarZIndex() {
     const navbars = document.querySelectorAll('nav, .navbar, header');
     navbars.forEach(nav => {
@@ -36,26 +35,21 @@
     });
   }
 
-  // 将密码卡片移动到遮罩层内，并居中
   function moveCardToModal(card) {
     const overlay = createModalOverlay();
-    // 清空遮罩层内容（可能已有其他内容）
-    overlay.innerHTML = '';
-    // 复制卡片样式（避免丢失原有样式）
+    overlay.innerHTML = ''; // 清空可能残留
     card.style.margin = '0';
     card.style.maxWidth = '28rem';
     card.style.width = '100%';
     overlay.appendChild(card);
-    // 确保卡片在遮罩层内可见
     card.style.display = 'block';
   }
 
-  // 恢复卡片到原位置（解密成功后）
   function restoreCardToOriginal(card, originalParent) {
     if (originalParent && originalParent.contains(card)) {
-      // 如果卡片还在遮罩中，移回原位置
       originalParent.appendChild(card);
       card.style.margin = '2rem auto';
+      card.style.display = '';
     }
     if (modalOverlay) {
       modalOverlay.remove();
@@ -64,9 +58,13 @@
   }
 
   function init() {
+    if (isDecrypted) return;
     const container = document.querySelector('[data-encrypted]');
     if (!container) return;
-    if (container.getAttribute('data-decrypted') === 'true') return;
+    if (container.getAttribute('data-decrypted') === 'true') {
+      isDecrypted = true;
+      return;
+    }
 
     const storedPassword = container.getAttribute('data-password');
     const encryptedData = container.getAttribute('data-encrypted');
@@ -78,12 +76,12 @@
 
     if (!passwordCard || !passwordInput || !decryptBtn || !errorMsg || !decryptedContent) return;
 
-    // 保存卡片的原始父元素
+    // 如果已经处理过（比如重复调用），避免重复移动
+    if (passwordCard.parentNode === modalOverlay) return;
+
     const originalParent = passwordCard.parentNode;
-    // 创建遮罩并将卡片移入
     moveCardToModal(passwordCard);
     ensureNavbarZIndex();
-    // 锁定页面滚动
     document.body.style.overflow = 'hidden';
 
     async function decryptWithWebCrypto(encryptedData, password) {
@@ -123,17 +121,14 @@
         try {
           const html = await decryptWithWebCrypto(encryptedData, userPassword);
           decryptedContent.innerHTML = `<div class="prose prose-lg prose-code:text-base max-w-none text-justify prose-headings:scroll-mt-20 prose-img:rounded-2xl prose-img:mx-auto prose-img:cursor-pointer">${html}</div>`;
-          // 恢复卡片到原位置（虽然之后会被隐藏，但为了完整性）
           restoreCardToOriginal(passwordCard, originalParent);
-          // 隐藏卡片（因为解密成功，卡片不再需要）
           passwordCard.style.display = 'none';
           decryptedContent.style.display = 'block';
-          // 显示编辑按钮（如果有）
           const editButton = document.getElementById('edit-button-container');
           if (editButton) editButton.style.display = 'flex';
           container.setAttribute('data-decrypted', 'true');
-          // 恢复页面滚动
           document.body.style.overflow = '';
+          isDecrypted = true;
         } catch (err) {
           console.error(err);
           errorMsg.textContent = '解密失败，密码错误或内容损坏';
@@ -151,9 +146,19 @@
     });
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-  } else {
-    init();
+  // 确保在页面完全加载后执行（包括 Astro 导航）
+  function runInit() {
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
   }
+
+  runInit();
+  document.addEventListener('astro:page-load', () => {
+    // 重置状态，因为新页面可能没有解密
+    isDecrypted = false;
+    init();
+  });
 })();

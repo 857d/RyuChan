@@ -209,6 +209,140 @@ const bannerSubtitle = pageConfig?.subtitle || "";
       });
     </script>
 
+    <!-- 全局密码处理脚本（独立于组件，负责背景虚化、解密、缓存） -->
+    <script is:inline>
+      (function() {
+        const CACHE_KEY = 'decrypted_content_';
+        const CACHE_EXPIRY = 10 * 60 * 1000;
+
+        function initPassword() {
+          const container = document.querySelector('.encrypted-container');
+          if (!container) return;
+          if (container.getAttribute('data-decrypted') === 'true') return;
+
+          const passwordCard = container.querySelector('.password-card');
+          const passwordInput = container.querySelector('#password-input');
+          const decryptBtn = container.querySelector('#decrypt-btn');
+          const errorMsg = container.querySelector('#error-msg');
+          const decryptedContent = container.querySelector('.decrypted-content');
+          const editButton = container.querySelector('#edit-button-container');
+
+          if (!passwordCard || !passwordInput || !decryptBtn || !errorMsg || !decryptedContent) {
+            setTimeout(initPassword, 100);
+            return;
+          }
+
+          let storedPassword = container.getAttribute('data-password') || '';
+          storedPassword = storedPassword.trim();
+          const encryptedData = container.getAttribute('data-encrypted');
+          const slug = container.getAttribute('data-slug');
+
+          // 缓存恢复
+          const cacheKey = CACHE_KEY + slug;
+          const cached = sessionStorage.getItem(cacheKey);
+          if (cached) {
+            try {
+              const { html, expiry } = JSON.parse(cached);
+              if (expiry > Date.now()) {
+                decryptedContent.innerHTML = html;
+                decryptedContent.style.display = 'block';
+                passwordCard.style.display = 'none';
+                if (editButton) editButton.style.display = 'flex';
+                container.setAttribute('data-decrypted', 'true');
+                return;
+              } else {
+                sessionStorage.removeItem(cacheKey);
+              }
+            } catch(e) {}
+          }
+
+          // 创建遮罩
+          const overlay = document.createElement('div');
+          overlay.id = 'password-modal-overlay';
+          overlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          `;
+          document.body.appendChild(overlay);
+          overlay.appendChild(passwordCard);
+          passwordCard.style.margin = '0';
+          passwordCard.style.maxWidth = '28rem';
+          passwordCard.style.width = '100%';
+          document.body.style.overflow = 'hidden';
+
+          const navbar = document.querySelector('nav, .navbar, header');
+          if (navbar) navbar.style.zIndex = '10000';
+
+          async function decryptWithWebCrypto(encrypted, pwd) {
+            const parts = encrypted.split(':');
+            if (parts.length !== 3) throw new Error('Invalid format');
+            const salt = Uint8Array.from(atob(parts[0]), c=>c.charCodeAt(0));
+            const iv = Uint8Array.from(atob(parts[1]), c=>c.charCodeAt(0));
+            const data = Uint8Array.from(atob(parts[2]), c=>c.charCodeAt(0));
+            const keyMat = await crypto.subtle.importKey('raw', new TextEncoder().encode(pwd), 'PBKDF2', false, ['deriveKey']);
+            const key = await crypto.subtle.deriveKey({ name: 'PBKDF2', salt, iterations: 100000, hash: 'SHA-256' }, keyMat, { name: 'AES-CBC', length: 256 }, false, ['decrypt']);
+            const decrypted = await crypto.subtle.decrypt({ name: 'AES-CBC', iv }, key, data.buffer);
+            return new TextDecoder().decode(decrypted);
+          }
+
+          async function handleDecrypt() {
+            const userPwd = passwordInput.value.trim();
+            if (!userPwd) {
+              errorMsg.textContent = '请输入密码';
+              errorMsg.classList.remove('hidden');
+              return;
+            }
+            if (userPwd !== storedPassword) {
+              errorMsg.textContent = '密码错误，请重试';
+              errorMsg.classList.remove('hidden');
+              return;
+            }
+            try {
+              const html = await decryptWithWebCrypto(encryptedData, userPwd);
+              decryptedContent.innerHTML = html;
+              decryptedContent.style.display = 'block';
+              overlay.remove();
+              passwordCard.style.display = 'none';
+              if (editButton) editButton.style.display = 'flex';
+              container.setAttribute('data-decrypted', 'true');
+              document.body.style.overflow = '';
+              sessionStorage.setItem(cacheKey, JSON.stringify({ html, expiry: Date.now() + CACHE_EXPIRY }));
+              errorMsg.textContent = '';
+            } catch(err) {
+              console.error(err);
+              errorMsg.textContent = '解密失败，密码错误或内容损坏';
+              errorMsg.classList.remove('hidden');
+            }
+          }
+
+          decryptBtn.addEventListener('click', handleDecrypt);
+          passwordInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') handleDecrypt();
+          });
+        }
+
+        function run() {
+          setTimeout(initPassword, 100);
+        }
+
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', run);
+        } else {
+          run();
+        }
+        document.addEventListener('astro:page-load', run);
+      })();
+    </script>
+
     <style is:inline>
       .btn-copy {
         position: relative;

@@ -5,12 +5,14 @@ const { slug, encryptedContent, password } = Astro.props;
 {
   password ? (
     <div id={`encrypted-post-${slug}`} data-encrypted={encryptedContent} data-password={password} data-slug={slug}>
+      <!-- 编辑按钮（初始隐藏） -->
       <div id="edit-button-container" class="flex justify-end mb-4" style="display: none;">
         <a href={`/write?slug=${slug}`} class="btn btn-primary btn-sm text-white no-underline" aria-label="Edit Article">
           <span class="hidden sm:inline">Edit</span>
         </a>
       </div>
 
+      <!-- 密码卡片（将移动到遮罩层） -->
       <div class="password-card" style="max-width: 28rem; margin: 2rem auto;">
         <div class="card bg-base-100 shadow-xl border border-base-200">
           <div class="card-body items-center text-center">
@@ -26,9 +28,115 @@ const { slug, encryptedContent, password } = Astro.props;
         </div>
       </div>
 
+      <!-- 解密后内容容器 -->
       <div class="decrypted-content" style="display: none;"></div>
     </div>
   ) : (
     <p>⚠️ 此文章未设置密码，无法加密。</p>
   )
 }
+
+<script is:inline>
+  (function() {
+    // 等待 DOM 完全渲染
+    setTimeout(() => {
+      const container = document.querySelector('[data-encrypted]');
+      if (!container || container.getAttribute('data-decrypted') === 'true') return;
+
+      const passwordCard = container.querySelector('.password-card');
+      const passwordInput = container.querySelector('#password-input');
+      const decryptBtn = container.querySelector('#decrypt-btn');
+      const errorMsg = container.querySelector('#error-msg');
+      const decryptedContent = container.querySelector('.decrypted-content');
+
+      if (!passwordCard || !passwordInput || !decryptBtn || !errorMsg || !decryptedContent) {
+        console.error('密码组件元素缺失');
+        return;
+      }
+
+      const storedPassword = container.getAttribute('data-password');
+      const encryptedData = container.getAttribute('data-encrypted');
+
+      // 创建全屏遮罩层
+      const overlay = document.createElement('div');
+      overlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(8px);
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      `;
+      document.body.appendChild(overlay);
+
+      // 将密码卡片移动到遮罩层中
+      overlay.appendChild(passwordCard);
+      passwordCard.style.margin = '0';
+      passwordCard.style.width = '100%';
+      passwordCard.style.display = 'block';
+      document.body.style.overflow = 'hidden';
+
+      // 解密函数
+      async function decryptWithWebCrypto(encryptedData, password) {
+        const parts = encryptedData.split(':');
+        if (parts.length !== 3) throw new Error('Invalid encrypted data format');
+        const salt = Uint8Array.from(atob(parts[0]), c => c.charCodeAt(0));
+        const iv = Uint8Array.from(atob(parts[1]), c => c.charCodeAt(0));
+        const ciphertext = Uint8Array.from(atob(parts[2]), c => c.charCodeAt(0));
+        const enc = new TextEncoder();
+        const keyMaterial = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveKey']);
+        const key = await crypto.subtle.deriveKey(
+          { name: 'PBKDF2', salt, iterations: 100000, hash: 'SHA-256' },
+          keyMaterial,
+          { name: 'AES-CBC', length: 256 },
+          false,
+          ['decrypt']
+        );
+        const decrypted = await crypto.subtle.decrypt({ name: 'AES-CBC', iv }, key, ciphertext.buffer);
+        return new TextDecoder().decode(decrypted);
+      }
+
+      // 验证并解密
+      async function decryptAndShow() {
+        const userPassword = passwordInput.value.trim();
+        if (!userPassword) {
+          errorMsg.textContent = '请输入密码';
+          errorMsg.classList.remove('hidden');
+          return;
+        }
+        if (userPassword === storedPassword) {
+          try {
+            const html = await decryptWithWebCrypto(encryptedData, userPassword);
+            decryptedContent.innerHTML = `<div class="prose prose-lg prose-code:text-base max-w-none text-justify prose-headings:scroll-mt-20 prose-img:rounded-2xl prose-img:mx-auto prose-img:cursor-pointer">${html}</div>`;
+            // 移除遮罩，恢复滚动
+            overlay.remove();
+            // 隐藏密码卡片，显示内容
+            passwordCard.style.display = 'none';
+            decryptedContent.style.display = 'block';
+            const editButton = container.querySelector('#edit-button-container');
+            if (editButton) editButton.style.display = 'flex';
+            container.setAttribute('data-decrypted', 'true');
+            document.body.style.overflow = '';
+          } catch (err) {
+            console.error(err);
+            errorMsg.textContent = '解密失败，密码错误或内容损坏';
+            errorMsg.classList.remove('hidden');
+          }
+        } else {
+          errorMsg.textContent = '密码错误，请重试';
+          errorMsg.classList.remove('hidden');
+        }
+      }
+
+      decryptBtn.onclick = decryptAndShow;
+      passwordInput.onkeypress = (e) => {
+        if (e.key === 'Enter') decryptAndShow();
+      };
+    }, 50); // 延迟 50ms 确保 DOM 就绪
+  })();
+</script>

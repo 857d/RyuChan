@@ -76,7 +76,9 @@ const { slug, encryptedContent, password } = Astro.props;
           const html = await decryptWithWebCrypto(encryptedData, userPassword);
           decryptedContent.innerHTML = html;
           decryptedContent.style.display = 'block';
-          container.querySelector('div[style*="border"]').style.display = 'none';
+          // 隐藏密码输入区域
+          const inputArea = container.querySelector('div[style*="border"]');
+          if (inputArea) inputArea.style.display = 'none';
           errorMsg.textContent = '';
           console.log('解密成功');
         } catch (err) {

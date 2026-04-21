@@ -209,11 +209,18 @@ const bannerSubtitle = pageConfig?.subtitle || "";
       });
     </script>
 
-    <!-- 全局密码处理脚本（背景虚化、移动卡片、解密） -->
+    <!-- 全局密码处理脚本（修复客户端导航问题） -->
     <script is:inline>
       (function() {
         let modalOverlay = null;
-        let currentContainer = null;
+        let retryTimer = null;
+
+        function removeModal() {
+          if (modalOverlay && modalOverlay.parentNode) {
+            modalOverlay.remove();
+          }
+          modalOverlay = null;
+        }
 
         function createModalOverlay() {
           if (modalOverlay) return modalOverlay;
@@ -263,10 +270,7 @@ const bannerSubtitle = pageConfig?.subtitle || "";
             card.style.margin = '2rem auto';
             card.style.display = '';
           }
-          if (modalOverlay) {
-            modalOverlay.remove();
-            modalOverlay = null;
-          }
+          removeModal();
         }
 
         async function decryptWithWebCrypto(encryptedData, password) {
@@ -283,11 +287,13 @@ const bannerSubtitle = pageConfig?.subtitle || "";
         }
 
         function initPasswordProtection() {
+          // 清除之前的重试定时器
+          if (retryTimer) clearTimeout(retryTimer);
+          
           const container = document.querySelector('[data-encrypted]');
           if (!container) return;
+          // 如果已经解密成功，不再处理
           if (container.getAttribute('data-decrypted') === 'true') return;
-          if (currentContainer === container) return;
-          currentContainer = container;
 
           const passwordCard = container.querySelector('.password-card');
           const passwordInput = container.querySelector('#password-input');
@@ -295,15 +301,21 @@ const bannerSubtitle = pageConfig?.subtitle || "";
           const errorMsg = container.querySelector('#error-msg');
           const decryptedContent = container.querySelector('.decrypted-content');
 
+          // 如果元素还未渲染，稍后重试
           if (!passwordCard || !passwordInput || !decryptBtn || !errorMsg || !decryptedContent) {
-            setTimeout(initPasswordProtection, 100);
+            retryTimer = setTimeout(initPasswordProtection, 100);
             return;
           }
+
+          // 如果已经移动过卡片（防止重复移动）
+          if (passwordCard.parentNode === modalOverlay) return;
 
           const storedPassword = container.getAttribute('data-password');
           const encryptedData = container.getAttribute('data-encrypted');
           const originalParent = passwordCard.parentNode;
 
+          // 移除可能残留的遮罩层
+          removeModal();
           moveCardToModal(passwordCard);
           ensureNavbarZIndex();
           document.body.style.overflow = 'hidden';
@@ -337,22 +349,34 @@ const bannerSubtitle = pageConfig?.subtitle || "";
             }
           }
 
-          decryptBtn.addEventListener('click', decryptAndShow);
-          passwordInput.addEventListener('keypress', (e) => {
+          // 移除旧的监听器，避免重复绑定
+          const newDecryptBtn = decryptBtn.cloneNode(true);
+          const newPasswordInput = passwordInput.cloneNode(true);
+          decryptBtn.parentNode.replaceChild(newDecryptBtn, decryptBtn);
+          passwordInput.parentNode.replaceChild(newPasswordInput, passwordInput);
+          
+          newDecryptBtn.addEventListener('click', decryptAndShow);
+          newPasswordInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') decryptAndShow();
           });
         }
 
-        function run() {
-          setTimeout(initPasswordProtection, 50);
+        function resetAndInit() {
+          // 重置状态：移除遮罩、清除定时器
+          if (retryTimer) clearTimeout(retryTimer);
+          removeModal();
+          // 重置 body 滚动
+          document.body.style.overflow = '';
+          // 重新初始化
+          initPasswordProtection();
         }
 
         if (document.readyState === 'loading') {
-          document.addEventListener('DOMContentLoaded', run);
+          document.addEventListener('DOMContentLoaded', resetAndInit);
         } else {
-          run();
+          resetAndInit();
         }
-        document.addEventListener('astro:page-load', run);
+        document.addEventListener('astro:page-load', resetAndInit);
       })();
     </script>
 

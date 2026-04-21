@@ -1,416 +1,103 @@
----
-import {
-  SITE_TAB,
-  SITE_DESCRIPTION,
-  SITE_FAVICON,
-  SITE_LANGUAGE,
-  SITE_THEME,
-  umamiConfig,
-  SITE_PAGES,
-} from "@config";
-import { ClientRouter } from "astro:transitions";
-import ElementCrossing from "astro-vtbot/components/ElementCrossing.astro";
-import PointerOnNavigation from "astro-vtbot/components/PointerOnNavigation.astro";
-import Header from "@components/Header.astro";
-import Sidebar from "@components/Sidebar.astro";
-import Footer from "@components/Footer.astro";
-import Navbar from "@components/Navbar.astro";
-import Banner from "@components/Banner.astro";
-import MobileTOC from "@components/widgets/MobileTOC.astro";
-import GlobalAudio from "@components/widgets/GlobalAudio.astro";
+<script is:inline>
+  (function() {
+    let modalOverlay = null;
 
-const {
-  title,
-  image,
-  headings = [],
-  showTOC = false,
-  isIndexed = true,
-  isPostPage = false,
-  showSidebar = true,
-  showBanner = true,
-} = Astro.props;
-
-// 根据当前路径从配置中获取 Banner 内容
-const currentPath = Astro.url.pathname.replace("/", "") || "home";
-const pageConfig = SITE_PAGES?.[currentPath];
-const bannerTitle = pageConfig?.title || title || "";
-const bannerSubtitle = pageConfig?.subtitle || "";
----
-
-<!doctype html>
-<html
-  lang={SITE_LANGUAGE}
-  style="background-color: var(--custom-page-bg)"
-  data-theme={SITE_THEME.light}
-  data-theme-type="light"
->
-  <head>
-    <ClientRouter />
-    <ElementCrossing />
-    <PointerOnNavigation />
-    <Header
-      title={title}
-      description={SITE_DESCRIPTION}
-      favicon={SITE_FAVICON}
-      image={image}
-    />
-    <title>{`${title} - ${SITE_TAB}`}</title>
-
-    <!-- Umami分析（自建） -->
-    {
-      umamiConfig.enable && umamiConfig.websiteId && (
-        <script
-          is:inline
-          defer
-          src={`${umamiConfig.baseUrl}/script.js`}
-          data-website-id={umamiConfig.websiteId}
-        />
-      )
-    }
-    {
-      umamiConfig.enable && (
-        <script is:inline defer src="/js/umami-share.js"></script>
-      )
+    function createModalOverlay() {
+      if (modalOverlay) return modalOverlay;
+      const overlay = document.createElement('div');
+      overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);backdrop-filter:blur(8px);z-index:40;display:flex;align-items:center;justify-content:center;padding:1rem;';
+      document.body.appendChild(overlay);
+      modalOverlay = overlay;
+      return overlay;
     }
 
-    <!-- Microsoft Clarity -->
-    <script type="text/javascript" is:inline>
-      (function (c, l, a, r, i, t, y) {
-        c[a] =
-          c[a] ||
-          function () {
-            (c[a].q = c[a].q || []).push(arguments);
-          };
-        t = l.createElement(r);
-        t.async = 1;
-        t.src = "https://www.clarity.ms/tag/" + i;
-        y = l.getElementsByTagName(r)[0];
-        y.parentNode.insertBefore(t, y);
-      })(window, document, "clarity", "script", "skz108rus8");
-    </script>
+    function removeModal() {
+      if (modalOverlay) modalOverlay.remove();
+      modalOverlay = null;
+    }
 
-    <!-- 主题管理脚本 -->
-    <script define:vars={{ SITE_THEME }} is:inline>
-      (function () {
-        const storedTheme = localStorage.getItem("theme");
-        const storedBannerMode = localStorage.getItem("banner-mode") || "normal";
-        const prefersDark = window.matchMedia(
-          "(prefers-color-scheme: dark)",
-        ).matches;
-        
-        let theme;
-        if (storedTheme) {
-          theme = storedTheme;
+    function moveCardToModal(card) {
+      const overlay = createModalOverlay();
+      overlay.innerHTML = '';
+      card.style.cssText = 'margin:0;max-width:28rem;width:100%;display:block;';
+      overlay.appendChild(card);
+    }
+
+    function restoreCardToOriginal(card, originalParent) {
+      if (originalParent && originalParent.contains(card)) {
+        originalParent.appendChild(card);
+        card.style.cssText = 'margin:2rem auto;';
+      }
+      removeModal();
+    }
+
+    async function decryptWithWebCrypto(encryptedData, password) {
+      const parts = encryptedData.split(':');
+      if (parts.length !== 3) throw new Error('Invalid encrypted data format');
+      const salt = Uint8Array.from(atob(parts[0]), c => c.charCodeAt(0));
+      const iv = Uint8Array.from(atob(parts[1]), c => c.charCodeAt(0));
+      const ciphertext = Uint8Array.from(atob(parts[2]), c => c.charCodeAt(0));
+      const enc = new TextEncoder();
+      const keyMaterial = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveKey']);
+      const key = await crypto.subtle.deriveKey({ name: 'PBKDF2', salt, iterations: 100000, hash: 'SHA-256' }, keyMaterial, { name: 'AES-CBC', length: 256 }, false, ['decrypt']);
+      const decrypted = await crypto.subtle.decrypt({ name: 'AES-CBC', iv }, key, ciphertext.buffer);
+      return new TextDecoder().decode(decrypted);
+    }
+
+    function init() {
+      const container = document.querySelector('[data-encrypted]');
+      if (!container || container.getAttribute('data-decrypted') === 'true') return;
+
+      const passwordCard = container.querySelector('.password-card');
+      const passwordInput = container.querySelector('input[type="password"]');
+      const decryptBtn = container.querySelector('#decrypt-btn');
+      const errorMsg = container.querySelector('#error-msg');
+      const decryptedContent = container.querySelector('.decrypted-content');
+
+      if (!passwordCard || !passwordInput || !decryptBtn || !errorMsg || !decryptedContent) {
+        setTimeout(init, 100);
+        return;
+      }
+
+      const storedPassword = container.getAttribute('data-password');
+      const encryptedData = container.getAttribute('data-encrypted');
+      const originalParent = passwordCard.parentNode;
+
+      moveCardToModal(passwordCard);
+      document.body.style.overflow = 'hidden';
+
+      async function handleDecrypt() {
+        const userPassword = passwordInput.value;
+        if (!userPassword) {
+          errorMsg.textContent = '请输入密码';
+          errorMsg.classList.remove('hidden');
+          return;
+        }
+        if (userPassword === storedPassword) {
+          try {
+            const html = await decryptWithWebCrypto(encryptedData, userPassword);
+            decryptedContent.innerHTML = `<div class="prose prose-lg ...">${html}</div>`;
+            restoreCardToOriginal(passwordCard, originalParent);
+            passwordCard.style.display = 'none';
+            decryptedContent.style.display = 'block';
+            container.setAttribute('data-decrypted', 'true');
+            document.body.style.overflow = '';
+          } catch (err) {
+            errorMsg.textContent = '解密失败';
+            errorMsg.classList.remove('hidden');
+          }
         } else {
-          theme = SITE_THEME.light;
-          localStorage.setItem("theme", theme);
-        }
-        document.documentElement.setAttribute("data-theme", theme);
-        document.documentElement.setAttribute("data-banner-mode", storedBannerMode);
-        
-        const isDark = theme === SITE_THEME.dark || ['dark', 'synthwave', 'halloween', 'forest', 'black', 'luxury', 'dracula', 'business', 'night', 'coffee'].includes(theme);
-        const themeType = isDark ? "dark" : "light";
-        document.documentElement.setAttribute("data-theme-type", themeType);
-        window
-          .matchMedia("(prefers-color-scheme: dark)")
-          .addEventListener("change", (e) => {
-            if (!localStorage.getItem("theme")) {
-              const newTheme = e.matches ? SITE_THEME.dark : SITE_THEME.light;
-              document.documentElement.setAttribute("data-theme", newTheme);
-              const newThemeType = e.matches ? "dark" : "light";
-              document.documentElement.setAttribute(
-                "data-theme-type",
-                newThemeType,
-              );
-              localStorage.setItem("theme", newTheme);
-            }
-          });
-      })();
-    </script>
-  </head>
-
-  <!-- 移除上边距，让Banner从顶部开始 -->
-  <body
-    class="flex flex-col min-h-screen bg-[var(--banner-wave-bg)]"
-    {...isIndexed ? { "data-pagefind-body": true } : {}}
-  >
-    {showBanner && <Banner title={bannerTitle} subtitle={bannerSubtitle} />}
-    <Navbar />
-    <div class={`max-w-blog mx-auto w-full flex-grow page-content-animate ${showBanner ? 'mt-8' : 'mt-24'}`}>
-      <div
-        class={`grid grid-cols-1 ${showSidebar ? "md:grid-cols-5 lg:grid-cols-4" : ""} gap-4 px-4 pb-4 h-full`}
-      >
-        <main
-          class={`col-span-1 ${showSidebar ? "md:col-span-4 lg:col-span-3" : "w-full"} bg-transparent order-1 md:order-2 flex flex-col gap-4`}
-        >
-          <div class="flex-grow flex flex-col gap-4">
-            <slot />
-          </div>
-          <Footer />
-        </main>
-        {
-          showSidebar && (
-            <aside class="col-span-1 bg-transparent order-2 md:order-1 md:top-4 hidden md:block">
-              <Sidebar headings={headings} showTOC={showTOC} />
-              <slot name="sidebar" />
-            </aside>
-          )
-        }
-      </div>
-    </div>
-
-    <MobileTOC headings={headings} showTOC={showTOC} />
-    <GlobalAudio />
-
-    <!-- 其余脚本保持不变 -->
-    <script define:vars={{ SITE_THEME }} is:inline>
-      document.addEventListener("astro:after-swap", () => {
-        const storedTheme = localStorage.getItem("theme");
-        const storedBannerMode = localStorage.getItem("banner-mode") || "normal";
-        
-        if (storedTheme) {
-          document.documentElement.setAttribute("data-theme", storedTheme);
-          const isDark = storedTheme === SITE_THEME.dark || ['dark', 'synthwave', 'halloween', 'forest', 'black', 'luxury', 'dracula', 'business', 'night', 'coffee'].includes(storedTheme);
-          const themeType = isDark ? "dark" : "light";
-          document.documentElement.setAttribute("data-theme-type", themeType);
-        }
-        
-        document.documentElement.setAttribute("data-banner-mode", storedBannerMode);
-      });
-    </script>
-
-    <script is:inline>
-      document.addEventListener("astro:page-load", () => {
-        document.querySelectorAll(".btn-copy").forEach((button) => {
-          button.addEventListener("click", async () => {
-            const codeBlock = button.closest(".ryuchan-code");
-            const code = codeBlock.querySelector("code").textContent;
-            const copyIcon = button.querySelector(
-              ".ryuchan-code-toolbar-copy-icon",
-            );
-            const successIcon = button.querySelector(
-              ".ryuchan-code-toolbar-copy-success",
-            );
-            try {
-              await navigator.clipboard.writeText(code);
-              copyIcon.classList.add("hidden");
-              successIcon.classList.remove("hidden");
-              button.classList.add("copy-success");
-              setTimeout(() => {
-                copyIcon.classList.remove("hidden");
-                successIcon.classList.add("hidden");
-                button.classList.remove("copy-success");
-              }, 2000);
-            } catch (err) {
-              console.error("Failed to copy:", err);
-            }
-          });
-        });
-      });
-    </script>
-
-    <!-- 全局密码处理脚本（最终修复版：增强选择器 + 详细日志） -->
-    <script is:inline>
-      (function() {
-        let modalOverlay = null;
-        let retryTimer = null;
-
-        function removeModal() {
-          if (modalOverlay && modalOverlay.parentNode) {
-            modalOverlay.remove();
-          }
-          modalOverlay = null;
-        }
-
-        function createModalOverlay() {
-          if (modalOverlay) return modalOverlay;
-          const overlay = document.createElement('div');
-          overlay.id = 'password-modal-overlay';
-          overlay.style.position = 'fixed';
-          overlay.style.top = '0';
-          overlay.style.left = '0';
-          overlay.style.width = '100%';
-          overlay.style.height = '100%';
-          overlay.style.backgroundColor = 'rgba(0, 0, 0, 0.6)';
-          overlay.style.backdropFilter = 'blur(8px)';
-          overlay.style.zIndex = '40';
-          overlay.style.display = 'flex';
-          overlay.style.alignItems = 'center';
-          overlay.style.justifyContent = 'center';
-          overlay.style.padding = '1rem';
-          document.body.appendChild(overlay);
-          modalOverlay = overlay;
-          return overlay;
-        }
-
-        function ensureNavbarZIndex() {
-          const navbars = document.querySelectorAll('nav, .navbar, header');
-          navbars.forEach(nav => {
-            const zIndex = window.getComputedStyle(nav).zIndex;
-            if (zIndex === 'auto' || parseInt(zIndex) < 50) {
-              nav.style.position = 'relative';
-              nav.style.zIndex = '50';
-            }
-          });
-        }
-
-        function moveCardToModal(card) {
-          const overlay = createModalOverlay();
-          overlay.innerHTML = '';
-          card.style.margin = '0';
-          card.style.maxWidth = '28rem';
-          card.style.width = '100%';
-          overlay.appendChild(card);
-          card.style.display = 'block';
-        }
-
-        function restoreCardToOriginal(card, originalParent) {
-          if (originalParent && originalParent.contains(card)) {
-            originalParent.appendChild(card);
-            card.style.margin = '2rem auto';
-            card.style.display = '';
-          }
-          removeModal();
-        }
-
-        async function decryptWithWebCrypto(encryptedData, password) {
-          const parts = encryptedData.split(':');
-          if (parts.length !== 3) throw new Error('Invalid encrypted data format');
-          const salt = Uint8Array.from(atob(parts[0]), c => c.charCodeAt(0));
-          const iv = Uint8Array.from(atob(parts[1]), c => c.charCodeAt(0));
-          const ciphertext = Uint8Array.from(atob(parts[2]), c => c.charCodeAt(0));
-          const enc = new TextEncoder();
-          const keyMaterial = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveKey']);
-          const key = await crypto.subtle.deriveKey({ name: 'PBKDF2', salt, iterations: 100000, hash: 'SHA-256' }, keyMaterial, { name: 'AES-CBC', length: 256 }, false, ['decrypt']);
-          const decrypted = await crypto.subtle.decrypt({ name: 'AES-CBC', iv }, key, ciphertext.buffer);
-          return new TextDecoder().decode(decrypted);
-        }
-
-        function initPasswordProtection() {
-          if (retryTimer) clearTimeout(retryTimer);
-          
-          const container = document.querySelector('[data-encrypted]');
-          if (!container) {
-            console.log('❌ 未找到 [data-encrypted] 容器');
-            return;
-          }
-          if (container.getAttribute('data-decrypted') === 'true') return;
-
-          const passwordCard = container.querySelector('.password-card');
-          // 优先使用 id="password-input"，如果不存在则使用当前容器内的密码输入框（类型为password）
-          let passwordInput = container.querySelector('#password-input');
-          if (!passwordInput) {
-            passwordInput = container.querySelector('input[type="password"]');
-            if (passwordInput) console.log('🔍 通过 input[type=password] 找到密码输入框');
-          }
-          let decryptBtn = container.querySelector('#decrypt-btn');
-          if (!decryptBtn) {
-            decryptBtn = container.querySelector('button');
-            console.log('🔍 通过 button 找到验证按钮');
-          }
-          const errorMsg = container.querySelector('#error-msg');
-          const decryptedContent = container.querySelector('.decrypted-content');
-
-          if (!passwordCard || !passwordInput || !decryptBtn || !errorMsg || !decryptedContent) {
-            console.log('⏳ 等待元素渲染...', { passwordCard: !!passwordCard, passwordInput: !!passwordInput, decryptBtn: !!decryptBtn, errorMsg: !!errorMsg, decryptedContent: !!decryptedContent });
-            retryTimer = setTimeout(initPasswordProtection, 100);
-            return;
-          }
-
-          if (passwordCard.parentNode === modalOverlay) return;
-
-          const storedPassword = container.getAttribute('data-password');
-          const encryptedData = container.getAttribute('data-encrypted');
-          const originalParent = passwordCard.parentNode;
-
-          removeModal();
-          moveCardToModal(passwordCard);
-          ensureNavbarZIndex();
-          document.body.style.overflow = 'hidden';
-
-          async function decryptAndShow() {
-            const userPassword = passwordInput.value;
-            const trimmedPassword = userPassword ? userPassword.trim() : '';
-            console.log(`🔐 输入的密码: "${trimmedPassword}" (长度: ${trimmedPassword.length})`);
-            console.log(`🔑 存储的密码: "${storedPassword}"`);
-            if (!trimmedPassword) {
-              errorMsg.textContent = '请输入密码';
-              errorMsg.classList.remove('hidden');
-              return;
-            }
-            if (trimmedPassword === storedPassword) {
-              try {
-                const html = await decryptWithWebCrypto(encryptedData, trimmedPassword);
-                decryptedContent.innerHTML = `<div class="prose prose-lg prose-code:text-base max-w-none text-justify prose-headings:scroll-mt-20 prose-img:rounded-2xl prose-img:mx-auto prose-img:cursor-pointer">${html}</div>`;
-                restoreCardToOriginal(passwordCard, originalParent);
-                passwordCard.style.display = 'none';
-                decryptedContent.style.display = 'block';
-                const editButton = container.querySelector('#edit-button-container');
-                if (editButton) editButton.style.display = 'flex';
-                container.setAttribute('data-decrypted', 'true');
-                document.body.style.overflow = '';
-                console.log('✅ 解密成功');
-              } catch (err) {
-                console.error('❌ 解密失败:', err);
-                errorMsg.textContent = '解密失败，密码错误或内容损坏';
-                errorMsg.classList.remove('hidden');
-              }
-            } else {
-              errorMsg.textContent = '密码错误，请重试';
-              errorMsg.classList.remove('hidden');
-            }
-          }
-
-          // 移除旧监听器，避免重复绑定
-          const newDecryptBtn = decryptBtn.cloneNode(true);
-          const newPasswordInput = passwordInput.cloneNode(true);
-          decryptBtn.parentNode.replaceChild(newDecryptBtn, decryptBtn);
-          passwordInput.parentNode.replaceChild(newPasswordInput, passwordInput);
-          
-          newDecryptBtn.addEventListener('click', decryptAndShow);
-          newPasswordInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') decryptAndShow();
-          });
-        }
-
-        function resetAndInit() {
-          if (retryTimer) clearTimeout(retryTimer);
-          removeModal();
-          document.body.style.overflow = '';
-          initPasswordProtection();
-        }
-
-        if (document.readyState === 'loading') {
-          document.addEventListener('DOMContentLoaded', resetAndInit);
-        } else {
-          resetAndInit();
-        }
-        document.addEventListener('astro:page-load', resetAndInit);
-      })();
-    </script>
-
-    <style is:inline>
-      .btn-copy {
-        position: relative;
-        overflow: hidden;
-      }
-      .copy-success {
-        animation: pulse 0.5s ease-in-out;
-      }
-      .ryuchan-code-toolbar-copy-success svg {
-        color: #10b981;
-      }
-      @keyframes pulse {
-        0% {
-          transform: scale(1);
-        }
-        50% {
-          transform: scale(1.1);
-        }
-        100% {
-          transform: scale(1);
+          errorMsg.textContent = '密码错误';
+          errorMsg.classList.remove('hidden');
         }
       }
-    </style>
-  </body>
-</html>
+
+      decryptBtn.onclick = handleDecrypt;
+      passwordInput.onkeypress = (e) => { if (e.key === 'Enter') handleDecrypt(); };
+    }
+
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+    else init();
+    document.addEventListener('astro:page-load', init);
+  })();
+</script>

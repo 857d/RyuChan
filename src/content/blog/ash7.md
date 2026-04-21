@@ -11,7 +11,7 @@ tags:
 categories:
   - 教程
 badge: ''
-password: 1R97X0R7HOd
+password: '4317'
 ---
 软件下载教程
 =================

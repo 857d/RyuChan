@@ -209,7 +209,7 @@ const bannerSubtitle = pageConfig?.subtitle || "";
       });
     </script>
 
-    <!-- 全局密码处理脚本（已修复：增加 trim 和判空逻辑） -->
+    <!-- 全局密码处理脚本（最终修复版：增强选择器 + 详细日志） -->
     <script is:inline>
       (function() {
         let modalOverlay = null;
@@ -287,34 +287,42 @@ const bannerSubtitle = pageConfig?.subtitle || "";
         }
 
         function initPasswordProtection() {
-          // 清除之前的重试定时器
           if (retryTimer) clearTimeout(retryTimer);
           
           const container = document.querySelector('[data-encrypted]');
-          if (!container) return;
-          // 如果已经解密成功，不再处理
+          if (!container) {
+            console.log('❌ 未找到 [data-encrypted] 容器');
+            return;
+          }
           if (container.getAttribute('data-decrypted') === 'true') return;
 
           const passwordCard = container.querySelector('.password-card');
-          const passwordInput = container.querySelector('#password-input');
-          const decryptBtn = container.querySelector('#decrypt-btn');
+          // 优先使用 id="password-input"，如果不存在则使用当前容器内的密码输入框（类型为password）
+          let passwordInput = container.querySelector('#password-input');
+          if (!passwordInput) {
+            passwordInput = container.querySelector('input[type="password"]');
+            if (passwordInput) console.log('🔍 通过 input[type=password] 找到密码输入框');
+          }
+          let decryptBtn = container.querySelector('#decrypt-btn');
+          if (!decryptBtn) {
+            decryptBtn = container.querySelector('button');
+            console.log('🔍 通过 button 找到验证按钮');
+          }
           const errorMsg = container.querySelector('#error-msg');
           const decryptedContent = container.querySelector('.decrypted-content');
 
-          // 如果元素还未渲染，稍后重试
           if (!passwordCard || !passwordInput || !decryptBtn || !errorMsg || !decryptedContent) {
+            console.log('⏳ 等待元素渲染...', { passwordCard: !!passwordCard, passwordInput: !!passwordInput, decryptBtn: !!decryptBtn, errorMsg: !!errorMsg, decryptedContent: !!decryptedContent });
             retryTimer = setTimeout(initPasswordProtection, 100);
             return;
           }
 
-          // 如果已经移动过卡片（防止重复移动）
           if (passwordCard.parentNode === modalOverlay) return;
 
           const storedPassword = container.getAttribute('data-password');
           const encryptedData = container.getAttribute('data-encrypted');
           const originalParent = passwordCard.parentNode;
 
-          // 移除可能残留的遮罩层
           removeModal();
           moveCardToModal(passwordCard);
           ensureNavbarZIndex();
@@ -322,8 +330,9 @@ const bannerSubtitle = pageConfig?.subtitle || "";
 
           async function decryptAndShow() {
             const userPassword = passwordInput.value;
-            // 关键修复：去除前后空格，并判空
             const trimmedPassword = userPassword ? userPassword.trim() : '';
+            console.log(`🔐 输入的密码: "${trimmedPassword}" (长度: ${trimmedPassword.length})`);
+            console.log(`🔑 存储的密码: "${storedPassword}"`);
             if (!trimmedPassword) {
               errorMsg.textContent = '请输入密码';
               errorMsg.classList.remove('hidden');
@@ -340,8 +349,9 @@ const bannerSubtitle = pageConfig?.subtitle || "";
                 if (editButton) editButton.style.display = 'flex';
                 container.setAttribute('data-decrypted', 'true');
                 document.body.style.overflow = '';
+                console.log('✅ 解密成功');
               } catch (err) {
-                console.error(err);
+                console.error('❌ 解密失败:', err);
                 errorMsg.textContent = '解密失败，密码错误或内容损坏';
                 errorMsg.classList.remove('hidden');
               }
@@ -351,7 +361,7 @@ const bannerSubtitle = pageConfig?.subtitle || "";
             }
           }
 
-          // 移除旧的监听器，避免重复绑定
+          // 移除旧监听器，避免重复绑定
           const newDecryptBtn = decryptBtn.cloneNode(true);
           const newPasswordInput = passwordInput.cloneNode(true);
           decryptBtn.parentNode.replaceChild(newDecryptBtn, decryptBtn);
@@ -364,12 +374,9 @@ const bannerSubtitle = pageConfig?.subtitle || "";
         }
 
         function resetAndInit() {
-          // 重置状态：移除遮罩、清除定时器
           if (retryTimer) clearTimeout(retryTimer);
           removeModal();
-          // 重置 body 滚动
           document.body.style.overflow = '';
-          // 重新初始化
           initPasswordProtection();
         }
 

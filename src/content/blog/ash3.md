@@ -13,7 +13,7 @@ tags:
 categories:
   - 教程
 badge: pin
-password: '4389'
+password: '1392'
 ---
 # 推特登录教程
 

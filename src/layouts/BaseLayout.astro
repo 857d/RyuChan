@@ -211,179 +211,126 @@ const bannerSubtitle = pageConfig?.subtitle || "";
 
     <!-- 全局密码处理脚本（最终修复版：增强选择器 + trim + 详细日志） -->
     <script is:inline>
-      (function() {
-        let modalOverlay = null;
-        let retryTimer = null;
+  (function() {
+    let modalOverlay = null;
 
-        function removeModal() {
-          if (modalOverlay && modalOverlay.parentNode) {
-            modalOverlay.remove();
+    function createModalOverlay() {
+      if (modalOverlay) return modalOverlay;
+      const overlay = document.createElement('div');
+      overlay.id = 'password-modal-overlay';
+      overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);backdrop-filter:blur(8px);z-index:40;display:flex;align-items:center;justify-content:center;padding:1rem;';
+      document.body.appendChild(overlay);
+      modalOverlay = overlay;
+      return overlay;
+    }
+
+    function removeModal() {
+      if (modalOverlay) modalOverlay.remove();
+      modalOverlay = null;
+    }
+
+    function moveCardToModal(card) {
+      const overlay = createModalOverlay();
+      overlay.innerHTML = '';
+      card.style.cssText = 'margin:0;max-width:28rem;width:100%;display:block;';
+      overlay.appendChild(card);
+    }
+
+    function restoreCardToOriginal(card, originalParent) {
+      if (originalParent && originalParent.contains(card)) {
+        originalParent.appendChild(card);
+        card.style.cssText = 'margin:2rem auto;';
+      }
+      removeModal();
+    }
+
+    async function decryptWithWebCrypto(encryptedData, password) {
+      const parts = encryptedData.split(':');
+      if (parts.length !== 3) throw new Error('Invalid encrypted data format');
+      const salt = Uint8Array.from(atob(parts[0]), c => c.charCodeAt(0));
+      const iv = Uint8Array.from(atob(parts[1]), c => c.charCodeAt(0));
+      const ciphertext = Uint8Array.from(atob(parts[2]), c => c.charCodeAt(0));
+      const enc = new TextEncoder();
+      const keyMaterial = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveKey']);
+      const key = await crypto.subtle.deriveKey({ name: 'PBKDF2', salt, iterations: 100000, hash: 'SHA-256' }, keyMaterial, { name: 'AES-CBC', length: 256 }, false, ['decrypt']);
+      const decrypted = await crypto.subtle.decrypt({ name: 'AES-CBC', iv }, key, ciphertext.buffer);
+      return new TextDecoder().decode(decrypted);
+    }
+
+    function init() {
+      const container = document.querySelector('[data-encrypted]');
+      if (!container || container.getAttribute('data-decrypted') === 'true') return;
+
+      const passwordCard = container.querySelector('.password-card');
+      const decryptBtn = container.querySelector('#decrypt-btn');
+      const errorMsg = container.querySelector('#error-msg');
+      const decryptedContent = container.querySelector('.decrypted-content');
+
+      if (!passwordCard || !decryptBtn || !errorMsg || !decryptedContent) {
+        setTimeout(init, 100);
+        return;
+      }
+
+      const storedPasswordRaw = container.getAttribute('data-password');
+      const storedPassword = storedPasswordRaw ? storedPasswordRaw.trim() : '';
+      const encryptedData = container.getAttribute('data-encrypted');
+      const originalParent = passwordCard.parentNode;
+
+      moveCardToModal(passwordCard);
+      document.body.style.overflow = 'hidden';
+
+      async function handleDecrypt() {
+        // 动态查找当前可见的密码输入框（可能在遮罩层内）
+        const passwordInput = document.querySelector('#password-modal-overlay input[type="password"]') || document.querySelector('#password-input');
+        if (!passwordInput) {
+          errorMsg.textContent = '未找到密码输入框';
+          errorMsg.classList.remove('hidden');
+          return;
+        }
+        const userPasswordRaw = passwordInput.value;
+        const userPassword = userPasswordRaw ? userPasswordRaw.trim() : '';
+        console.log(`[解密] 输入密码: "${userPassword}" (长度: ${userPassword.length})`);
+        console.log(`[解密] 存储密码: "${storedPassword}" (长度: ${storedPassword.length})`);
+        if (!userPassword) {
+          errorMsg.textContent = '请输入密码';
+          errorMsg.classList.remove('hidden');
+          return;
+        }
+        if (userPassword === storedPassword) {
+          try {
+            const html = await decryptWithWebCrypto(encryptedData, userPassword);
+            decryptedContent.innerHTML = `<div class="prose prose-lg prose-code:text-base max-w-none text-justify prose-headings:scroll-mt-20 prose-img:rounded-2xl prose-img:mx-auto prose-img:cursor-pointer">${html}</div>`;
+            restoreCardToOriginal(passwordCard, originalParent);
+            passwordCard.style.display = 'none';
+            decryptedContent.style.display = 'block';
+            container.setAttribute('data-decrypted', 'true');
+            document.body.style.overflow = '';
+            console.log('[解密] 成功');
+          } catch (err) {
+            console.error(err);
+            errorMsg.textContent = '解密失败，密码错误或内容损坏';
+            errorMsg.classList.remove('hidden');
           }
-          modalOverlay = null;
-        }
-
-        function createModalOverlay() {
-          if (modalOverlay) return modalOverlay;
-          const overlay = document.createElement('div');
-          overlay.id = 'password-modal-overlay';
-          overlay.style.position = 'fixed';
-          overlay.style.top = '0';
-          overlay.style.left = '0';
-          overlay.style.width = '100%';
-          overlay.style.height = '100%';
-          overlay.style.backgroundColor = 'rgba(0, 0, 0, 0.6)';
-          overlay.style.backdropFilter = 'blur(8px)';
-          overlay.style.zIndex = '40';
-          overlay.style.display = 'flex';
-          overlay.style.alignItems = 'center';
-          overlay.style.justifyContent = 'center';
-          overlay.style.padding = '1rem';
-          document.body.appendChild(overlay);
-          modalOverlay = overlay;
-          return overlay;
-        }
-
-        function ensureNavbarZIndex() {
-          const navbars = document.querySelectorAll('nav, .navbar, header');
-          navbars.forEach(nav => {
-            const zIndex = window.getComputedStyle(nav).zIndex;
-            if (zIndex === 'auto' || parseInt(zIndex) < 50) {
-              nav.style.position = 'relative';
-              nav.style.zIndex = '50';
-            }
-          });
-        }
-
-        function moveCardToModal(card) {
-          const overlay = createModalOverlay();
-          overlay.innerHTML = '';
-          card.style.margin = '0';
-          card.style.maxWidth = '28rem';
-          card.style.width = '100%';
-          overlay.appendChild(card);
-          card.style.display = 'block';
-        }
-
-        function restoreCardToOriginal(card, originalParent) {
-          if (originalParent && originalParent.contains(card)) {
-            originalParent.appendChild(card);
-            card.style.margin = '2rem auto';
-            card.style.display = '';
-          }
-          removeModal();
-        }
-
-        async function decryptWithWebCrypto(encryptedData, password) {
-          const parts = encryptedData.split(':');
-          if (parts.length !== 3) throw new Error('Invalid encrypted data format');
-          const salt = Uint8Array.from(atob(parts[0]), c => c.charCodeAt(0));
-          const iv = Uint8Array.from(atob(parts[1]), c => c.charCodeAt(0));
-          const ciphertext = Uint8Array.from(atob(parts[2]), c => c.charCodeAt(0));
-          const enc = new TextEncoder();
-          const keyMaterial = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveKey']);
-          const key = await crypto.subtle.deriveKey({ name: 'PBKDF2', salt, iterations: 100000, hash: 'SHA-256' }, keyMaterial, { name: 'AES-CBC', length: 256 }, false, ['decrypt']);
-          const decrypted = await crypto.subtle.decrypt({ name: 'AES-CBC', iv }, key, ciphertext.buffer);
-          return new TextDecoder().decode(decrypted);
-        }
-
-        function initPasswordProtection() {
-          if (retryTimer) clearTimeout(retryTimer);
-          
-          const container = document.querySelector('[data-encrypted]');
-          if (!container) {
-            console.log('❌ 未找到加密容器');
-            return;
-          }
-          if (container.getAttribute('data-decrypted') === 'true') return;
-
-          const passwordCard = container.querySelector('.password-card');
-          // 关键修复：使用类型选择器获取密码输入框，避免 ID 冲突
-          let passwordInput = container.querySelector('input[type="password"]');
-          let decryptBtn = container.querySelector('#decrypt-btn');
-          if (!decryptBtn) {
-            decryptBtn = Array.from(container.querySelectorAll('button')).find(btn => btn.textContent.includes('验证'));
-          }
-          const errorMsg = container.querySelector('#error-msg');
-          const decryptedContent = container.querySelector('.decrypted-content');
-
-          if (!passwordCard || !passwordInput || !decryptBtn || !errorMsg || !decryptedContent) {
-            console.log('⏳ 等待元素渲染...');
-            retryTimer = setTimeout(initPasswordProtection, 100);
-            return;
-          }
-
-          if (passwordCard.parentNode === modalOverlay) return;
-
-          const storedPassword = container.getAttribute('data-password');
-          const encryptedData = container.getAttribute('data-encrypted');
-          const originalParent = passwordCard.parentNode;
-
-          removeModal();
-          moveCardToModal(passwordCard);
-          ensureNavbarZIndex();
-          document.body.style.overflow = 'hidden';
-
-          async function decryptAndShow() {
-            const userPassword = passwordInput.value;
-            const trimmedUser = userPassword ? userPassword.trim() : '';
-            const trimmedStored = storedPassword ? storedPassword.trim() : '';
-            console.log(`🔐 输入的密码: "${trimmedUser}" (长度: ${trimmedUser.length})`);
-            console.log(`🔑 存储的密码: "${trimmedStored}" (长度: ${trimmedStored.length})`);
-            if (!trimmedUser) {
-              errorMsg.textContent = '请输入密码';
-              errorMsg.classList.remove('hidden');
-              return;
-            }
-            if (trimmedUser === trimmedStored) {
-              try {
-                const html = await decryptWithWebCrypto(encryptedData, trimmedUser);
-                decryptedContent.innerHTML = `<div class="prose prose-lg prose-code:text-base max-w-none text-justify prose-headings:scroll-mt-20 prose-img:rounded-2xl prose-img:mx-auto prose-img:cursor-pointer">${html}</div>`;
-                restoreCardToOriginal(passwordCard, originalParent);
-                passwordCard.style.display = 'none';
-                decryptedContent.style.display = 'block';
-                const editButton = container.querySelector('#edit-button-container');
-                if (editButton) editButton.style.display = 'flex';
-                container.setAttribute('data-decrypted', 'true');
-                document.body.style.overflow = '';
-                console.log('✅ 解密成功');
-              } catch (err) {
-                console.error('❌ 解密失败:', err);
-                errorMsg.textContent = '解密失败，密码错误或内容损坏';
-                errorMsg.classList.remove('hidden');
-              }
-            } else {
-              errorMsg.textContent = '密码错误，请重试';
-              errorMsg.classList.remove('hidden');
-            }
-          }
-
-          // 移除旧监听器，避免重复绑定
-          const newDecryptBtn = decryptBtn.cloneNode(true);
-          const newPasswordInput = passwordInput.cloneNode(true);
-          decryptBtn.parentNode.replaceChild(newDecryptBtn, decryptBtn);
-          passwordInput.parentNode.replaceChild(newPasswordInput, passwordInput);
-          
-          newDecryptBtn.addEventListener('click', decryptAndShow);
-          newPasswordInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') decryptAndShow();
-          });
-        }
-
-        function resetAndInit() {
-          if (retryTimer) clearTimeout(retryTimer);
-          removeModal();
-          document.body.style.overflow = '';
-          initPasswordProtection();
-        }
-
-        if (document.readyState === 'loading') {
-          document.addEventListener('DOMContentLoaded', resetAndInit);
         } else {
-          resetAndInit();
+          errorMsg.textContent = '密码错误，请重试';
+          errorMsg.classList.remove('hidden');
         }
-        document.addEventListener('astro:page-load', resetAndInit);
-      })();
-    </script>
+      }
+
+      decryptBtn.onclick = handleDecrypt;
+      // 全局键盘事件处理回车
+      document.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' && document.activeElement && document.activeElement.type === 'password') {
+          handleDecrypt();
+        }
+      });
+    }
+
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+    else init();
+    document.addEventListener('astro:page-load', init);
+  })();
+</script>
 
     <style is:inline>
       .btn-copy {

@@ -33,23 +33,18 @@ export async function getStaticPaths() {
       const nextPost = index > 0 ? publishedPosts[index - 1] : null;
 
       const articlePassword = blog.data.password;
-      console.log(`文章 ${blog.slug} 的密码:`, articlePassword);
       let encryptedHtml = "";
       let needProtect = false;
 
-      if (articlePassword && articlePassword.trim() !== "") {
-        if (blog.body && typeof blog.body === "string" && blog.body.trim() !== "") {
-          needProtect = true;
-          try {
-            const html = await marked.parse(blog.body);
-            encryptedHtml = await encryptWithWebCrypto(html, articlePassword);
-          } catch (err) {
-            console.error(`加密文章 "${blog.slug}" 失败:`, err);
-            encryptedHtml = "";
-            needProtect = false;
-          }
-        } else {
-          console.warn(`文章 "${blog.slug}" 内容为空，无法加密，将按普通文章处理`);
+      if (articlePassword && typeof articlePassword === "string" && articlePassword.trim() !== "") {
+        needProtect = true;
+        try {
+          const html = await marked.parse(blog.body);
+          encryptedHtml = await encryptWithWebCrypto(html, articlePassword);
+        } catch (err) {
+          console.error(`加密文章 "${blog.slug}" 失败:`, err);
+          encryptedHtml = "";
+          needProtect = false;
         }
       }
 
@@ -100,6 +95,7 @@ const url = new URL(`/blog/${blog.slug}`, Astro.url.origin);
     image={blog.data.image}
     infoIcon="lucide:info"
   >
+    <!-- 未加密文章的编辑按钮 -->
     {!needProtect && (
       <div class="flex justify-end">
         <a href={`/write?slug=${blog.slug}`} class="btn btn-primary btn-sm text-white no-underline" aria-label="Edit Article">
@@ -107,6 +103,7 @@ const url = new URL(`/blog/${blog.slug}`, Astro.url.origin);
         </a>
       </div>
     )}
+
     <PostInfo
       pubDate={displayDate}
       badge={blog.data.badge}
@@ -125,39 +122,22 @@ const url = new URL(`/blog/${blog.slug}`, Astro.url.origin);
         id="content"
         class="prose prose-lg prose-code:text-base max-w-none text-justify prose-headings:scroll-mt-20 prose-img:rounded-2xl prose-img:mx-auto prose-img:cursor-pointer"
       >
-        {
-          needProtect ? (
-            <>
-              <EncryptedContent slug={blog.slug} encryptedContent={encryptedHtml} password={articlePassword} />
-              <License
-                url={url.toString()}
-                title={blog.data.title}
-                image={blog.data.image}
-                pubDate={blog.data.pubDate}
-                badge={blog.data.badge}
-                categories={blog.data.categories}
-                tags={blog.data.tags}
-                word={remarkPluginFrontmatter.totalCharCount}
-                time={remarkPluginFrontmatter.readingTime}
-              />
-            </>
-          ) : (
-            <>
-              <Content />
-              <License
-                url={url.toString()}
-                title={blog.data.title}
-                image={blog.data.image}
-                pubDate={blog.data.pubDate}
-                badge={blog.data.badge}
-                categories={blog.data.categories}
-                tags={blog.data.tags}
-                word={remarkPluginFrontmatter.totalCharCount}
-                time={remarkPluginFrontmatter.readingTime}
-              />
-            </>
-          )
-        }
+        {needProtect ? (
+          <EncryptedContent slug={blog.slug} encryptedContent={encryptedHtml} password={articlePassword} />
+        ) : (
+          <Content />
+        )}
+        <License
+          url={url.toString()}
+          title={blog.data.title}
+          image={blog.data.image}
+          pubDate={blog.data.pubDate}
+          badge={blog.data.badge}
+          categories={blog.data.categories}
+          tags={blog.data.tags}
+          word={remarkPluginFrontmatter.totalCharCount}
+          time={remarkPluginFrontmatter.readingTime}
+        />
       </div>
     </div>
   </MainCard>

@@ -11,7 +11,7 @@ const { slug, encryptedContent, password } = Astro.props;
       data-slug={slug}
       class="encrypted-container"
     >
-      <!-- 原始密码卡片（将被移动到全屏遮罩中） -->
+      <!-- 密码卡片 -->
       <div class="password-card" style="max-width: 28rem; margin: 2rem auto;">
         <div class="card bg-base-100 shadow-xl border border-base-200">
           <div class="card-body items-center text-center">
@@ -19,13 +19,7 @@ const { slug, encryptedContent, password } = Astro.props;
             <h2 class="card-title text-xl">此文章已加密</h2>
             <p class="text-sm text-base-content/70 mb-4">请输入密码查看内容</p>
             <div class="form-control w-full max-w-xs">
-              <input
-                type="password"
-                id="password-input"
-                placeholder="密码"
-                class="input input-bordered w-full mb-4"
-                autofocus
-              />
+              <input type="password" id="password-input" placeholder="密码" class="input input-bordered w-full mb-4" autofocus />
               <button id="decrypt-btn" class="btn btn-primary">验证</button>
             </div>
             <div id="error-msg" class="text-error text-sm mt-2 hidden"></div>
@@ -36,173 +30,12 @@ const { slug, encryptedContent, password } = Astro.props;
       <!-- 解密后内容容器 -->
       <div class="decrypted-content" style="display: none;"></div>
 
-      <!-- 编辑按钮（解密后显示） -->
+      <!-- 编辑按钮容器（解密后显示） -->
       <div id="edit-button-container" class="flex justify-end mb-4" style="display: none;">
-        <a
-          href={`/write?slug=${slug}`}
-          class="btn btn-primary btn-sm text-white no-underline"
-          aria-label="Edit Article"
-        >
-          <span class="hidden sm:inline">Edit</span>
-        </a>
+        <a href={`/write?slug=${slug}`} class="btn btn-primary btn-sm text-white no-underline">Edit</a>
       </div>
     </div>
   ) : (
     <p>⚠️ 此文章未设置密码，无法加密。</p>
   )
 }
-
-<script is:inline>
-  (function () {
-    // 缓存配置：10分钟
-    const CACHE_KEY = 'decrypted_content_';
-    const CACHE_EXPIRY = 10 * 60 * 1000;
-
-    // 延迟执行，确保 DOM 完全加载
-    function init() {
-      const container = document.getElementById(`encrypted-post-${slug}`);
-      if (!container) {
-        console.error('未找到加密容器');
-        return;
-      }
-      if (container.getAttribute('data-decrypted') === 'true') return;
-
-      const passwordCard = container.querySelector('.password-card');
-      const passwordInput = container.querySelector('#password-input');
-      const decryptBtn = container.querySelector('#decrypt-btn');
-      const errorMsg = container.querySelector('#error-msg');
-      const decryptedContent = container.querySelector('.decrypted-content');
-      const editButtonContainer = container.querySelector('#edit-button-container');
-
-      if (!passwordCard || !passwordInput || !decryptBtn || !errorMsg || !decryptedContent) {
-        console.error('密码组件元素缺失');
-        return;
-      }
-
-      // 获取存储的密码（去除首尾空白）
-      let storedPassword = container.getAttribute('data-password') || '';
-      storedPassword = storedPassword.trim();
-      const encryptedData = container.getAttribute('data-encrypted');
-      const slug = container.getAttribute('data-slug');
-
-      // 尝试从缓存恢复
-      const cacheKey = CACHE_KEY + slug;
-      const cached = sessionStorage.getItem(cacheKey);
-      if (cached) {
-        try {
-          const { html, expiry } = JSON.parse(cached);
-          if (expiry > Date.now()) {
-            // 缓存有效，直接显示内容
-            decryptedContent.innerHTML = html;
-            decryptedContent.style.display = 'block';
-            passwordCard.style.display = 'none';
-            if (editButtonContainer) editButtonContainer.style.display = 'flex';
-            container.setAttribute('data-decrypted', 'true');
-            const oldOverlay = document.querySelector('#password-modal-overlay');
-            if (oldOverlay) oldOverlay.remove();
-            document.body.style.overflow = '';
-            return;
-          } else {
-            sessionStorage.removeItem(cacheKey);
-          }
-        } catch (e) {}
-      }
-
-      // 创建全屏遮罩层
-      const overlay = document.createElement('div');
-      overlay.id = 'password-modal-overlay';
-      overlay.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.6);
-        backdrop-filter: blur(8px);
-        z-index: 9999;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      `;
-      document.body.appendChild(overlay);
-      overlay.appendChild(passwordCard);
-      passwordCard.style.margin = '0';
-      passwordCard.style.maxWidth = '28rem';
-      passwordCard.style.width = '100%';
-      document.body.style.overflow = 'hidden';
-
-      // 提升导航栏层级，使其可点击
-      const navbar = document.querySelector('nav, .navbar, header');
-      if (navbar) navbar.style.zIndex = '10000';
-
-      // 解密函数（Web Crypto API）
-      async function decryptWithWebCrypto(encrypted, pwd) {
-        const parts = encrypted.split(':');
-        if (parts.length !== 3) throw new Error('Invalid encrypted data format');
-        const salt = Uint8Array.from(atob(parts[0]), c => c.charCodeAt(0));
-        const iv = Uint8Array.from(atob(parts[1]), c => c.charCodeAt(0));
-        const data = Uint8Array.from(atob(parts[2]), c => c.charCodeAt(0));
-        const enc = new TextEncoder();
-        const keyMaterial = await crypto.subtle.importKey('raw', enc.encode(pwd), 'PBKDF2', false, ['deriveKey']);
-        const key = await crypto.subtle.deriveKey(
-          { name: 'PBKDF2', salt, iterations: 100000, hash: 'SHA-256' },
-          keyMaterial,
-          { name: 'AES-CBC', length: 256 },
-          false,
-          ['decrypt']
-        );
-        const decrypted = await crypto.subtle.decrypt({ name: 'AES-CBC', iv }, key, data.buffer);
-        return new TextDecoder().decode(decrypted);
-      }
-
-      async function handleDecrypt() {
-        const userPassword = passwordInput.value.trim();
-        if (!userPassword) {
-          errorMsg.textContent = '请输入密码';
-          errorMsg.classList.remove('hidden');
-          return;
-        }
-        if (userPassword !== storedPassword) {
-          errorMsg.textContent = '密码错误，请重试';
-          errorMsg.classList.remove('hidden');
-          return;
-        }
-        try {
-          const html = await decryptWithWebCrypto(encryptedData, userPassword);
-          // 显示解密内容
-          decryptedContent.innerHTML = html;
-          decryptedContent.style.display = 'block';
-          // 移除遮罩，隐藏密码卡片
-          overlay.remove();
-          passwordCard.style.display = 'none';
-          document.body.style.overflow = '';
-          // 显示编辑按钮
-          if (editButtonContainer) editButtonContainer.style.display = 'flex';
-          container.setAttribute('data-decrypted', 'true');
-          // 保存缓存
-          const cacheData = { html, expiry: Date.now() + CACHE_EXPIRY };
-          sessionStorage.setItem(cacheKey, JSON.stringify(cacheData));
-          errorMsg.textContent = '';
-        } catch (err) {
-          console.error(err);
-          errorMsg.textContent = '解密失败，密码错误或内容损坏';
-          errorMsg.classList.remove('hidden');
-        }
-      }
-
-      decryptBtn.addEventListener('click', handleDecrypt);
-      passwordInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') handleDecrypt();
-      });
-    }
-
-    // 确保 DOM 完全加载后再执行
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', () => setTimeout(init, 100));
-    } else {
-      setTimeout(init, 100);
-    }
-    // 支持 Astro 客户端导航
-    document.addEventListener('astro:page-load', () => setTimeout(init, 100));
-  })();
-</script>

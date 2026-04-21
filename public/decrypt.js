@@ -57,9 +57,30 @@
     }
   }
 
-  function init() {
+  // 等待元素出现（最多等待 2 秒）
+  function waitForElement(selector, timeout = 2000) {
+    return new Promise((resolve) => {
+      const el = document.querySelector(selector);
+      if (el) return resolve(el);
+      const observer = new MutationObserver(() => {
+        const found = document.querySelector(selector);
+        if (found) {
+          observer.disconnect();
+          resolve(found);
+        }
+      });
+      observer.observe(document.body, { childList: true, subtree: true });
+      setTimeout(() => {
+        observer.disconnect();
+        resolve(null);
+      }, timeout);
+    });
+  }
+
+  async function init() {
     if (isDecrypted) return;
-    const container = document.querySelector('[data-encrypted]');
+    // 等待容器出现
+    const container = await waitForElement('[data-encrypted]');
     if (!container) return;
     if (container.getAttribute('data-decrypted') === 'true') {
       isDecrypted = true;
@@ -68,10 +89,11 @@
 
     const storedPassword = container.getAttribute('data-password');
     const encryptedData = container.getAttribute('data-encrypted');
-    const passwordCard = container.querySelector('.password-card');
-    const passwordInput = document.getElementById('password-input');
-    const decryptBtn = document.getElementById('decrypt-btn');
-    const errorMsg = document.getElementById('error-msg');
+    // 等待密码卡片内的元素
+    const passwordCard = await waitForElement('.password-card');
+    const passwordInput = await waitForElement('#password-input');
+    const decryptBtn = await waitForElement('#decrypt-btn');
+    const errorMsg = await waitForElement('#error-msg');
     const decryptedContent = container.querySelector('.decrypted-content');
 
     if (!passwordCard || !passwordInput || !decryptBtn || !errorMsg || !decryptedContent) return;
@@ -146,17 +168,15 @@
     });
   }
 
+  // 在页面加载和 Astro 导航时调用，并设置延迟确保 DOM 就绪
   function runInit() {
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', init);
-    } else {
-      init();
-    }
+    setTimeout(init, 50);
   }
 
-  runInit();
-  document.addEventListener('astro:page-load', () => {
-    isDecrypted = false;
-    init();
-  });
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', runInit);
+  } else {
+    runInit();
+  }
+  document.addEventListener('astro:page-load', runInit);
 })();

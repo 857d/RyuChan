@@ -22,7 +22,7 @@ export const NAV_DATA: NavCategory[] = [
         "id": "DEV002"
       },
       {
-        "name": "Tg客服",
+        "name": "Tg频道",
         "avatar": "https://cdn.phototourl.com/free/2026-04-17-f9dd10ed-b476-4800-8f29-533baf3c082a.png",
         "description": "来找我聊天吹水~",
         "url": "https://t.me/dianbaodashen1",

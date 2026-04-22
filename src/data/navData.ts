@@ -32,7 +32,7 @@ export const NAV_DATA: NavCategory[] = [
       {
         "name": "Telegram",
         "avatar": "https://cdn.phototourl.com/free/2026-04-17-f9dd10ed-b476-4800-8f29-533baf3c082a.png",
-        "description": "跨平台的即时通讯软件",
+        "description": "跨平台的即时通讯软件(纸飞机)",
         "url": "https://telegram.org/",
         "category": "纸飞机",
         "id": "DEV004"
@@ -40,7 +40,7 @@ export const NAV_DATA: NavCategory[] = [
       {
         "name": "X",
         "avatar": "https://cdn.phototourl.com/free/2026-04-17-6c61e698-1031-4acd-b712-3b0d20389a48.png",
-        "description": "国外人都在用的微博",
+        "description": "国外人都在用的微博(推特)",
         "url": "https://x.com/",
         "category": "推特",
         "id": "DEV005"
@@ -56,7 +56,7 @@ export const NAV_DATA: NavCategory[] = [
       {
         "name": "Google",
         "avatar": "https://cdn.phototourl.com/free/2026-04-17-08c19452-1578-4eb0-bee3-947526730092.png",
-        "description": "最强大的搜索引擎",
+        "description": "最强大的搜索引擎谷歌",
         "url": "https://www.google.cn/",
         "category": "谷歌",
         "id": "DEV007"
@@ -64,7 +64,7 @@ export const NAV_DATA: NavCategory[] = [
       {
         "name": "Gmail",
         "avatar": "https://cdn.phototourl.com/member/2026-04-17-41450d8d-bd89-4c89-8a1c-4f1893730437.png",
-        "description": "Google的免费网络邮件服务",
+        "description": "谷歌的免费网络邮件服务",
         "url": "https://workspace.google.com/intl/zh-CN/gmail/",
         "category": "谷歌邮箱",
         "id": "DEV008"
@@ -72,7 +72,7 @@ export const NAV_DATA: NavCategory[] = [
       {
         "name": "Gemini",
         "avatar": "https://cdn.phototourl.com/member/2026-04-22-aa1d8f99-9b4a-4322-86f1-1602d6c34fb7.webp",
-        "description": "谷歌公司的DeepMind团队开发的多模态大型语言模型系列",
+        "description": "谷歌公司开发的多模态大型语言模型系列",
         "url": "https://gemini.google.com/",
         "category": "谷歌Ai",
         "id": "DEV009"
@@ -80,7 +80,7 @@ export const NAV_DATA: NavCategory[] = [
       {
         "name": "Shadowrocket",
         "avatar": "https://cdn.phototourl.com/free/2026-04-17-3cd5fd0c-a85f-4804-ab54-f93d51c70b25.webp",
-        "description": "IOS端最好用的加速器",
+        "description": "IOS端最好用的加速器(小火箭)",
         "url": "https://apps.apple.com/us/app/shadowrocket/id932747118",
         "category": "小火箭",
         "id": "DEV010"
@@ -88,7 +88,7 @@ export const NAV_DATA: NavCategory[] = [
       {
         "name": "YouTube",
         "avatar": "https://cdn.phototourl.com/free/2026-04-17-a4633e7a-07c3-4fc6-8972-a9cc48fe911f.png",
-        "description": "全球最大的视频分享平台",
+        "description": "全球最大的视频分享平台(油管)",
         "url": "https://www.youtube.com/",
         "category": "油管",
         "id": "DEV011"
@@ -104,7 +104,7 @@ export const NAV_DATA: NavCategory[] = [
       {
         "name": "Facebook",
         "avatar": "https://cdn.phototourl.com/free/2026-04-17-e5aec287-925b-4a12-8d1d-23847e7ce245.png",
-        "description": "全球最大的社交网络服务平台",
+        "description": "全球最大的社交网络服务平台(脸书)",
         "url": "https://www.facebook.com/",
         "category": "脸书",
         "id": "DEV013"

@@ -70,6 +70,14 @@ export const NAV_DATA: NavCategory[] = [
         "id": "DEV008"
       },
       {
+        "name": "Gemini",
+        "avatar": "https://cdn.phototourl.com/member/2026-04-22-aa1d8f99-9b4a-4322-86f1-1602d6c34fb7.webp",
+        "description": "谷歌公司的DeepMind团队开发的多模态大型语言模型系列",
+        "url": "https://gemini.google.com/",
+        "category": "",
+        "id": "DEV015"
+      },
+      {
         "name": "Shadowrocket",
         "avatar": "https://cdn.phototourl.com/free/2026-04-17-3cd5fd0c-a85f-4804-ab54-f93d51c70b25.webp",
         "description": "IOS端最好用的加速器",
@@ -116,14 +124,6 @@ export const NAV_DATA: NavCategory[] = [
         "url": "https://chatgpt.com/",
         "category": "ChatGPT",
         "id": "DEV014"
-      },
-      {
-        "name": "Gemini",
-        "avatar": "https://cdn.phototourl.com/member/2026-04-22-aa1d8f99-9b4a-4322-86f1-1602d6c34fb7.webp",
-        "description": "谷歌公司的DeepMind团队开发的多模态大型语言模型系列",
-        "url": "https://gemini.google.com/",
-        "category": "",
-        "id": "DEV015"
       }
     ]
   }

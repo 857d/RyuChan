@@ -62,6 +62,14 @@ export const NAV_DATA: NavCategory[] = [
         "id": "DEV009"
       },
       {
+        "name": "Gmail",
+        "avatar": "https://cdn.phototourl.com/member/2026-04-17-41450d8d-bd89-4c89-8a1c-4f1893730437.png",
+        "description": "Google的免费网络邮件服务",
+        "url": "https://workspace.google.com/intl/zh-CN/gmail/",
+        "category": "谷歌邮箱",
+        "id": "DEV008"
+      },
+      {
         "name": "Shadowrocket",
         "avatar": "https://cdn.phototourl.com/free/2026-04-17-3cd5fd0c-a85f-4804-ab54-f93d51c70b25.webp",
         "description": "IOS端最好用的加速器",
@@ -76,14 +84,6 @@ export const NAV_DATA: NavCategory[] = [
         "url": "https://www.youtube.com/",
         "category": "油管",
         "id": "DEV007"
-      },
-      {
-        "name": "Gmail",
-        "avatar": "https://cdn.phototourl.com/member/2026-04-17-41450d8d-bd89-4c89-8a1c-4f1893730437.png",
-        "description": "Google的免费网络邮件服务",
-        "url": "https://workspace.google.com/intl/zh-CN/gmail/",
-        "category": "谷歌邮箱",
-        "id": "DEV008"
       },
       {
         "name": "Instagram",

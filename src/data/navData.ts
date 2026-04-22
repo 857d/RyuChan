@@ -46,6 +46,14 @@ export const NAV_DATA: NavCategory[] = [
         "id": "DEV005"
       },
       {
+        "name": "TikTok",
+        "avatar": "https://cdn.phototourl.com/member/2026-04-17-9c6d5343-fd8c-41a0-8ae3-5b774705d69e.webp",
+        "description": "国外人都在用的抖音",
+        "url": "https://www.tiktok.com/",
+        "category": "抖音",
+        "id": "DEV011"
+      },
+      {
         "name": "Google",
         "avatar": "https://cdn.phototourl.com/free/2026-04-17-08c19452-1578-4eb0-bee3-947526730092.png",
         "description": "最强大的搜索引擎",
@@ -84,14 +92,6 @@ export const NAV_DATA: NavCategory[] = [
         "url": "https://www.instagram.com/",
         "category": "ig·ins",
         "id": "DEV010"
-      },
-      {
-        "name": "TikTok",
-        "avatar": "https://cdn.phototourl.com/member/2026-04-17-9c6d5343-fd8c-41a0-8ae3-5b774705d69e.webp",
-        "description": "国外人都在用的抖音",
-        "url": "https://www.tiktok.com/",
-        "category": "抖音",
-        "id": "DEV011"
       },
       {
         "name": "Facebook",

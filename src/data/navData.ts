@@ -111,7 +111,7 @@ export const NAV_DATA: NavCategory[] = [
       },
       {
         "name": "新项目",
-        "avatar": "",
+        "avatar": "https://cdn.phototourl.com/member/2026-04-22-16a4578c-129e-4bf4-9460-0ff342b65488.webp",
         "description": "",
         "url": "",
         "category": "",

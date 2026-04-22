@@ -209,7 +209,7 @@ const bannerSubtitle = pageConfig?.subtitle || "";
       });
     </script>
 
-    <!-- 移动端优化版密码处理脚本 -->
+    <!-- 移动端优化版密码处理脚本（遮罩层不覆盖导航栏） -->
     <script is:inline>
       (function() {
         const CACHE_KEY = 'decrypted_content_';
@@ -256,39 +256,40 @@ const bannerSubtitle = pageConfig?.subtitle || "";
             } catch(e) {}
           }
 
-          // 创建全屏遮罩层（移动端优化：touch-action + 固定定位）
+          // 获取导航栏高度
+          const navbar = document.querySelector('nav, .navbar, header');
+          const navbarHeight = navbar ? navbar.offsetHeight : 0;
+
+          // 创建遮罩层，覆盖除导航栏外的内容区域
           const overlay = document.createElement('div');
           overlay.id = 'password-modal-overlay';
           overlay.style.cssText = `
             position: fixed;
-            top: 0;
+            top: ${navbarHeight}px;
             left: 0;
             width: 100%;
-            height: 100%;
+            height: calc(100% - ${navbarHeight}px);
             background: rgba(0, 0, 0, 0.6);
             backdrop-filter: blur(8px);
             z-index: 9999;
             display: flex;
             align-items: center;
             justify-content: center;
-            touch-action: none;
           `;
           document.body.appendChild(overlay);
+          
+          // 将密码卡片移动到遮罩层内
           overlay.appendChild(passwordCard);
           passwordCard.style.margin = '0';
           passwordCard.style.maxWidth = '28rem';
           passwordCard.style.width = '100%';
           
-          // 彻底锁定页面滚动（移动端+桌面端）
+          // 锁定页面滚动（移动端+桌面端）
           const scrollY = window.scrollY;
           document.body.style.overflow = 'hidden';
           document.body.style.position = 'fixed';
           document.body.style.top = `-${scrollY}px`;
           document.body.style.width = '100%';
-
-          // 提升导航栏层级，确保可点击
-          const navbar = document.querySelector('nav, .navbar, header');
-          if (navbar) navbar.style.zIndex = '10001';
 
           async function decryptWithWebCrypto(encrypted, pwd) {
             const parts = encrypted.split(':');

@@ -51,7 +51,7 @@ export const NAV_DATA: NavCategory[] = [
         "description": "国外人都在用的抖音",
         "url": "https://www.tiktok.com/",
         "category": "抖音",
-        "id": "DEV011"
+        "id": "DEV006"
       },
       {
         "name": "Google",
@@ -59,7 +59,7 @@ export const NAV_DATA: NavCategory[] = [
         "description": "最强大的搜索引擎",
         "url": "https://www.google.cn/",
         "category": "谷歌",
-        "id": "DEV009"
+        "id": "DEV007"
       },
       {
         "name": "Gmail",
@@ -75,7 +75,7 @@ export const NAV_DATA: NavCategory[] = [
         "description": "谷歌公司的DeepMind团队开发的多模态大型语言模型系列",
         "url": "https://gemini.google.com/",
         "category": "",
-        "id": "DEV015"
+        "id": "DEV009"
       },
       {
         "name": "Shadowrocket",
@@ -83,7 +83,7 @@ export const NAV_DATA: NavCategory[] = [
         "description": "IOS端最好用的加速器",
         "url": "https://apps.apple.com/us/app/shadowrocket/id932747118",
         "category": "小火箭",
-        "id": "DEV006"
+        "id": "DEV010"
       },
       {
         "name": "YouTube",
@@ -91,7 +91,7 @@ export const NAV_DATA: NavCategory[] = [
         "description": "全球最大的视频分享平台",
         "url": "https://www.youtube.com/",
         "category": "油管",
-        "id": "DEV007"
+        "id": "DEV011"
       },
       {
         "name": "Instagram",
@@ -99,7 +99,7 @@ export const NAV_DATA: NavCategory[] = [
         "description": "国外人都在用的小红书",
         "url": "https://www.instagram.com/",
         "category": "ig·ins",
-        "id": "DEV010"
+        "id": "DEV012"
       },
       {
         "name": "Facebook",
@@ -107,7 +107,7 @@ export const NAV_DATA: NavCategory[] = [
         "description": "全球最大的社交网络服务平台",
         "url": "https://www.facebook.com/",
         "category": "脸书",
-        "id": "DEV012"
+        "id": "DEV013"
       },
       {
         "name": "WhatsApp",
@@ -115,7 +115,7 @@ export const NAV_DATA: NavCategory[] = [
         "description": "跨平台即时通讯应用程序",
         "url": "https://www.whatsapp.com/",
         "category": "WhatsApp",
-        "id": "DEV013"
+        "id": "DEV014"
       },
       {
         "name": "ChatGPT",
@@ -123,7 +123,7 @@ export const NAV_DATA: NavCategory[] = [
         "description": "由‌OpenAI 研发的对话式人工智能模型‌",
         "url": "https://chatgpt.com/",
         "category": "ChatGPT",
-        "id": "DEV014"
+        "id": "DEV015"
       }
     ]
   }

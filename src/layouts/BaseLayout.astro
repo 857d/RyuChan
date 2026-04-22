@@ -209,7 +209,7 @@ const bannerSubtitle = pageConfig?.subtitle || "";
       });
     </script>
 
-    <!-- 密码处理脚本（遮罩层只覆盖文章内容，不覆盖导航栏） -->
+    <!-- 密码处理脚本（统一全屏遮罩，提升导航栏层级） -->
     <script is:inline>
       (function() {
         const CACHE_KEY = 'decrypted_content_';
@@ -256,15 +256,11 @@ const bannerSubtitle = pageConfig?.subtitle || "";
             } catch(e) {}
           }
 
-          // 找到主要内容区域（main 元素）
-          const mainContent = document.querySelector('main');
-          if (!mainContent) return;
-
-          // 创建遮罩层，只覆盖 main 内容区域
+          // 全屏遮罩层
           const overlay = document.createElement('div');
           overlay.id = 'password-modal-overlay';
           overlay.style.cssText = `
-            position: absolute;
+            position: fixed;
             top: 0;
             left: 0;
             width: 100%;
@@ -275,22 +271,23 @@ const bannerSubtitle = pageConfig?.subtitle || "";
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: inherit;
           `;
-          
-          // 确保 main 元素是相对定位，以便遮罩层相对于它定位
-          const originalPosition = window.getComputedStyle(mainContent).position;
-          if (originalPosition === 'static') {
-            mainContent.style.position = 'relative';
-          }
-          mainContent.appendChild(overlay);
+          document.body.appendChild(overlay);
           overlay.appendChild(passwordCard);
           passwordCard.style.margin = '0';
           passwordCard.style.maxWidth = '28rem';
           passwordCard.style.width = '100%';
           
-          // 只锁定 main 内容区域的滚动，不影响导航栏
-          mainContent.style.overflow = 'hidden';
+          // 锁定页面滚动
+          const scrollY = window.scrollY;
+          document.body.style.overflow = 'hidden';
+          document.body.style.position = 'fixed';
+          document.body.style.top = `-${scrollY}px`;
+          document.body.style.width = '100%';
+
+          // 提升导航栏层级，确保可点击
+          const navbar = document.querySelector('nav, .navbar, header');
+          if (navbar) navbar.style.zIndex = '10001';
 
           async function decryptWithWebCrypto(encrypted, pwd) {
             const parts = encrypted.split(':');
@@ -324,11 +321,14 @@ const bannerSubtitle = pageConfig?.subtitle || "";
               passwordCard.style.display = 'none';
               if (editButton) editButton.style.display = 'flex';
               container.setAttribute('data-decrypted', 'true');
-              // 恢复 main 内容区域的滚动
-              mainContent.style.overflow = '';
-              if (originalPosition === 'static') {
-                mainContent.style.position = '';
-              }
+              
+              // 恢复页面滚动
+              document.body.style.overflow = '';
+              document.body.style.position = '';
+              document.body.style.top = '';
+              document.body.style.width = '';
+              window.scrollTo(0, scrollY);
+              
               sessionStorage.setItem(cacheKey, JSON.stringify({ html, expiry: Date.now() + CACHE_EXPIRY }));
               errorMsg.textContent = '';
             } catch(err) {

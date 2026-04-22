@@ -119,7 +119,7 @@ export const NAV_DATA: NavCategory[] = [
       },
       {
         "name": "",
-        "avatar": "",
+        "avatar": "https://cdn.phototourl.com/member/2026-04-22-aa1d8f99-9b4a-4322-86f1-1602d6c34fb7.webp",
         "description": "",
         "url": "",
         "category": "",

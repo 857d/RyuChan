@@ -120,7 +120,7 @@ export const NAV_DATA: NavCategory[] = [
       {
         "name": "Gemini",
         "avatar": "https://cdn.phototourl.com/member/2026-04-22-aa1d8f99-9b4a-4322-86f1-1602d6c34fb7.webp",
-        "description": "",
+        "description": "谷歌公司的DeepMind团队开发的多模态大型语言模型系列",
         "url": "https://gemini.google.com/",
         "category": "",
         "id": "DEV015"

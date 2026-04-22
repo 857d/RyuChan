@@ -11,7 +11,7 @@ export const NAV_DATA: NavCategory[] = [
         "description": "来找我聊天吹水~",
         "url": "https://t.me/dianbaodashen1",
         "category": "在线中",
-        "id": "DEV003"
+        "id": "DEV001"
       },
       {
         "name": "客服QQ",
@@ -19,7 +19,7 @@ export const NAV_DATA: NavCategory[] = [
         "description": "任何问题请联系",
         "url": "https://tool.gljlw.com/qq/?qq=971165458",
         "category": "在线中",
-        "id": "DEV001"
+        "id": "DEV002"
       },
       {
         "name": "客服QQ",
@@ -27,7 +27,7 @@ export const NAV_DATA: NavCategory[] = [
         "description": "购买请联系我",
         "url": "https://tool.gljlw.com/qq/?qq=1226407713",
         "category": "在线中",
-        "id": "DEV002"
+        "id": "DEV003"
       },
       {
         "name": "Telegram",

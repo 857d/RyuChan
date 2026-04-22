@@ -112,7 +112,7 @@ export const NAV_DATA: NavCategory[] = [
       {
         "name": "新项目",
         "avatar": "https://cdn.phototourl.com/member/2026-04-22-16a4578c-129e-4bf4-9460-0ff342b65488.webp",
-        "description": "",
+        "description": "由‌OpenAI 研发的对话式人工智能模型‌",
         "url": "",
         "category": "",
         "id": "ITEM1776869995285"

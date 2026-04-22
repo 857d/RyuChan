@@ -108,6 +108,22 @@ export const NAV_DATA: NavCategory[] = [
         "url": "https://www.whatsapp.com/",
         "category": "WhatsApp",
         "id": "DEV013"
+      },
+      {
+        "name": "新项目",
+        "avatar": "",
+        "description": "",
+        "url": "",
+        "category": "",
+        "id": "ITEM1776869995285"
+      },
+      {
+        "name": "新项目",
+        "avatar": "",
+        "description": "",
+        "url": "",
+        "category": "",
+        "id": "ITEM1776869996222"
       }
     ]
   }

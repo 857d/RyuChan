@@ -6,6 +6,14 @@ export const NAV_DATA: NavCategory[] = [
     "icon": "lucide:code",
     "items": [
       {
+        "name": "Tg频道",
+        "avatar": "https://cdn.phototourl.com/free/2026-04-17-f9dd10ed-b476-4800-8f29-533baf3c082a.png",
+        "description": "来找我聊天吹水~",
+        "url": "https://t.me/dianbaodashen1",
+        "category": "在线中",
+        "id": "DEV003"
+      },
+      {
         "name": "客服QQ",
         "avatar": "https://cdn.phototourl.com/member/2026-04-17-80c50d45-46c6-42df-ab3b-66925a91f976.webp",
         "description": "任何问题请联系",
@@ -20,14 +28,6 @@ export const NAV_DATA: NavCategory[] = [
         "url": "https://tool.gljlw.com/qq/?qq=1226407713",
         "category": "在线中",
         "id": "DEV002"
-      },
-      {
-        "name": "Tg频道",
-        "avatar": "https://cdn.phototourl.com/free/2026-04-17-f9dd10ed-b476-4800-8f29-533baf3c082a.png",
-        "description": "来找我聊天吹水~",
-        "url": "https://t.me/dianbaodashen1",
-        "category": "在线中",
-        "id": "DEV003"
       },
       {
         "name": "Telegram",

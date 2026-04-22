@@ -209,7 +209,7 @@ const bannerSubtitle = pageConfig?.subtitle || "";
       });
     </script>
 
-    <!-- 移动端优化版密码处理脚本（遮罩层不覆盖导航栏） -->
+    <!-- 密码处理脚本（遮罩层只覆盖文章内容，不覆盖导航栏） -->
     <script is:inline>
       (function() {
         const CACHE_KEY = 'decrypted_content_';
@@ -256,40 +256,41 @@ const bannerSubtitle = pageConfig?.subtitle || "";
             } catch(e) {}
           }
 
-          // 获取导航栏高度
-          const navbar = document.querySelector('nav, .navbar, header');
-          const navbarHeight = navbar ? navbar.offsetHeight : 0;
+          // 找到主要内容区域（main 元素）
+          const mainContent = document.querySelector('main');
+          if (!mainContent) return;
 
-          // 创建遮罩层，覆盖除导航栏外的内容区域
+          // 创建遮罩层，只覆盖 main 内容区域
           const overlay = document.createElement('div');
           overlay.id = 'password-modal-overlay';
           overlay.style.cssText = `
-            position: fixed;
-            top: ${navbarHeight}px;
+            position: absolute;
+            top: 0;
             left: 0;
             width: 100%;
-            height: calc(100% - ${navbarHeight}px);
+            height: 100%;
             background: rgba(0, 0, 0, 0.6);
             backdrop-filter: blur(8px);
             z-index: 9999;
             display: flex;
             align-items: center;
             justify-content: center;
+            border-radius: inherit;
           `;
-          document.body.appendChild(overlay);
           
-          // 将密码卡片移动到遮罩层内
+          // 确保 main 元素是相对定位，以便遮罩层相对于它定位
+          const originalPosition = window.getComputedStyle(mainContent).position;
+          if (originalPosition === 'static') {
+            mainContent.style.position = 'relative';
+          }
+          mainContent.appendChild(overlay);
           overlay.appendChild(passwordCard);
           passwordCard.style.margin = '0';
           passwordCard.style.maxWidth = '28rem';
           passwordCard.style.width = '100%';
           
-          // 锁定页面滚动（移动端+桌面端）
-          const scrollY = window.scrollY;
-          document.body.style.overflow = 'hidden';
-          document.body.style.position = 'fixed';
-          document.body.style.top = `-${scrollY}px`;
-          document.body.style.width = '100%';
+          // 只锁定 main 内容区域的滚动，不影响导航栏
+          mainContent.style.overflow = 'hidden';
 
           async function decryptWithWebCrypto(encrypted, pwd) {
             const parts = encrypted.split(':');
@@ -323,14 +324,11 @@ const bannerSubtitle = pageConfig?.subtitle || "";
               passwordCard.style.display = 'none';
               if (editButton) editButton.style.display = 'flex';
               container.setAttribute('data-decrypted', 'true');
-              
-              // 恢复页面滚动
-              document.body.style.overflow = '';
-              document.body.style.position = '';
-              document.body.style.top = '';
-              document.body.style.width = '';
-              window.scrollTo(0, scrollY);
-              
+              // 恢复 main 内容区域的滚动
+              mainContent.style.overflow = '';
+              if (originalPosition === 'static') {
+                mainContent.style.position = '';
+              }
               sessionStorage.setItem(cacheKey, JSON.stringify({ html, expiry: Date.now() + CACHE_EXPIRY }));
               errorMsg.textContent = '';
             } catch(err) {

@@ -115,15 +115,15 @@ export const NAV_DATA: NavCategory[] = [
         "description": "由‌OpenAI 研发的对话式人工智能模型‌",
         "url": "https://chatgpt.com/",
         "category": "ChatGPT",
-        "id": "ITEM1776869995285"
+        "id": "DEV014"
       },
       {
-        "name": "新项目",
+        "name": "",
         "avatar": "",
         "description": "",
         "url": "",
         "category": "",
-        "id": "ITEM1776869996222"
+        "id": "DEV015"
       }
     ]
   }

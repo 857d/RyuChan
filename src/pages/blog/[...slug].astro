@@ -32,18 +32,22 @@ export async function getStaticPaths() {
         index < publishedPosts.length - 1 ? publishedPosts[index + 1] : null;
       const nextPost = index > 0 ? publishedPosts[index - 1] : null;
 
-      // 强制加密：使用固定密码 9674
-      const articlePassword = "9674";
+      // 从文章 frontmatter 中读取密码
+      const articlePassword = blog.data.password;
       let encryptedHtml = "";
-      let needProtect = true;
+      let needProtect = false;
 
-      try {
-        const html = await marked.parse(blog.body);
-        encryptedHtml = await encryptWithWebCrypto(html, articlePassword);
-      } catch (err) {
-        console.error(`加密文章 "${blog.slug}" 失败:`, err);
-        encryptedHtml = "";
-        needProtect = false;
+      // 只有文章设置了密码且非空时，才进行加密
+      if (articlePassword && typeof articlePassword === "string" && articlePassword.trim() !== "") {
+        needProtect = true;
+        try {
+          const html = await marked.parse(blog.body);
+          encryptedHtml = await encryptWithWebCrypto(html, articlePassword);
+        } catch (err) {
+          console.error(`加密文章 "${blog.slug}" 失败:`, err);
+          encryptedHtml = "";
+          needProtect = false;
+        }
       }
 
       return {
@@ -54,7 +58,7 @@ export async function getStaticPaths() {
           nextPost,
           encryptedHtml,
           needProtect,
-          articlePassword,
+          articlePassword: articlePassword || "",
         },
       };
     })
@@ -93,7 +97,7 @@ const url = new URL(`/blog/${blog.slug}`, Astro.url.origin);
     image={blog.data.image}
     infoIcon="lucide:info"
   >
-    <!-- 未加密文章的编辑按钮（强制加密下不显示） -->
+    <!-- 未加密文章的编辑按钮 -->
     {!needProtect && (
       <div class="flex justify-end">
         <a href={`/write?slug=${blog.slug}`} class="btn btn-primary btn-sm text-white no-underline" aria-label="Edit Article">

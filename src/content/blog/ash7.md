@@ -80,15 +80,15 @@ IOS软件下载
 
 安卓
 =================
-加速器：   https://www.ilanzou.com/s/LIf6zDTD?code=3957
+加速器：   https://www.ilanzou.com/s/D15mZQlB
 
-飞机：      https://www.ilanzou.com/s/MM26zQkP?code=9864
+飞机：      hhttps://www.ilanzou.com/s/wgQmZQwr
 
-推特：      https://www.ilanzou.com/s/ACS6zQfV?code=4165
+推特：      https://www.ilanzou.com/s/bozmZD5a
 
-软件商店：https://www.ilanzou.com/s/qv06zQrt?code=4325
+软件商店：https://www.ilanzou.com/s/qv06zQrt
 
-TikTok：   https://www.ilanzou.com/s/5lk6zQ2t?code=2634
+TikTok：   https://www.ilanzou.com/s/5lk6zQ2t
 
 ---
 # End
